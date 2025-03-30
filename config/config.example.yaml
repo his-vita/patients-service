@@ -1,0 +1,9 @@
+env: # local or prod
+server: # http-server properties
+  port:
+db: # db connection properties
+  host: 
+  port: 
+  user: 
+  password: 
+  db_name: 
