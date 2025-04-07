@@ -17,7 +17,7 @@ func main() {
 
 	log := logger.New(cfg.Env)
 
-	application := app.New()
+	application := app.New(&cfg.Db)
 
 	go application.HttpServer.MustRun(fmt.Sprintf(":%v", cfg.Server.Port))
 

@@ -8,20 +8,21 @@ import (
 
 type Config struct {
 	Env    string `yaml:"env" env-default:"local"`
-	Server server `yaml:"server"`
-	Db     db     `yaml:"db"`
+	Server Server `yaml:"server"`
+	Db     Db     `yaml:"db"`
 }
 
-type server struct {
+type Server struct {
 	Port int `yaml:"port" env-default:"8080"`
 }
 
-type db struct {
+type Db struct {
 	Host     string `yaml:"host" env-default:"localhost"`
 	Port     int    `yaml:"port" env-default:"5432"`
 	User     string `yaml:"user" env-default:"postgres"`
 	Password string `yaml:"password" env-default:"postgres"`
 	DbName   string `yaml:"db_name" env-default:"patients_db"`
+	SSLMode  string `yaml:"ssl_mode" env-default:"disable"`
 }
 
 func MustLoad() *Config {

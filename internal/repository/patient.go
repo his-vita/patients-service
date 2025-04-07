@@ -1,10 +1,17 @@
 package repository
 
+import (
+	"github.com/jackc/pgx/v5"
+)
+
 type PatientRepository struct {
+	pgCon *pgx.Conn
 }
 
-func NewPatientRepository() *PatientRepository {
-	return &PatientRepository{}
+func NewPatientRepository(pgCon *pgx.Conn) *PatientRepository {
+	return &PatientRepository{
+		pgCon: pgCon,
+	}
 }
 
 func (pr *PatientRepository) GetPatient() {
