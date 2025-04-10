@@ -1,16 +1,16 @@
 package repository
 
 import (
-	"github.com/jackc/pgx/v5"
+	"github.com/his-vita/patients-service/internal/database"
 )
 
 type PatientRepository struct {
-	pgCon *pgx.Conn
+	pgContext *database.PgContext
 }
 
-func NewPatientRepository(pgCon *pgx.Conn) *PatientRepository {
+func NewPatientRepository(pgContext *database.PgContext) *PatientRepository {
 	return &PatientRepository{
-		pgCon: pgCon,
+		pgContext: pgContext,
 	}
 }
 

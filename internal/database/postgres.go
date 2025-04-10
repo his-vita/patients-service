@@ -3,34 +3,49 @@ package database
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/his-vita/patients-service/internal/config"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Postgres struct {
-	PgCon *pgx.Conn
+const timeout = 30 * time.Second
+
+type PgContext struct {
+	Pool    *pgxpool.Pool
+	Context context.Context
+	cancel  context.CancelFunc
 }
 
-func NewPostgresConnect(dbCfg *config.Db) *Postgres {
-	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		dbCfg.Host, dbCfg.Port, dbCfg.User, dbCfg.Password, dbCfg.DbName, dbCfg.SSLMode)
+func NewPostgresConnect(dbCfg *config.Db) *PgContext {
+	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s",
+		dbCfg.Host, dbCfg.Port, dbCfg.User, dbCfg.Password, dbCfg.DbName)
 
-	pgCon, err := pgx.Connect(context.Background(), connStr)
+	poolConfig, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
 		panic(fmt.Sprintf("error: %s", err))
 	}
 
-	if err := pgCon.Ping(context.Background()); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+
+	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
+	if err != nil {
 		panic(fmt.Sprintf("error: %s", err))
 	}
 
-	return &Postgres{
-		PgCon: pgCon,
+	if err := pool.Ping(ctx); err != nil {
+		panic(fmt.Sprintf("error: %s", err))
+	}
+
+	return &PgContext{
+		Pool:    pool,
+		Context: ctx,
+		cancel:  cancel,
 	}
 }
 
-func (p *Postgres) CloseConnect() {
-	p.PgCon.Close(context.Background())
+func (p *PgContext) Close() {
+	p.cancel()
+	p.Pool.Close()
 }

@@ -1,6 +1,8 @@
 package app
 
 import (
+	"log/slog"
+
 	httpserver "github.com/his-vita/patients-service/internal/app/http-server"
 	"github.com/his-vita/patients-service/internal/config"
 	"github.com/his-vita/patients-service/internal/controller"
@@ -12,13 +14,14 @@ import (
 
 type App struct {
 	HttpServer *httpserver.HttpServer
+	PgContext  *database.PgContext
+	log        *slog.Logger
 }
 
-func New(dbCfg *config.Db) *App {
-	pg := database.NewPostgresConnect(dbCfg)
-	defer pg.CloseConnect()
+func New(dbCfg *config.Db, log *slog.Logger) *App {
+	pgContext := database.NewPostgresConnect(dbCfg)
 
-	patientRepository := repository.NewPatientRepository(pg.PgCon)
+	patientRepository := repository.NewPatientRepository(pgContext)
 	patientService := service.NewPatientService(patientRepository)
 	patientController := controller.NewPatientController(patientService)
 
@@ -30,5 +33,7 @@ func New(dbCfg *config.Db) *App {
 
 	return &App{
 		HttpServer: httpServer,
+		PgContext:  pgContext,
+		log:        log,
 	}
 }

@@ -2,10 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log/slog"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/his-vita/patients-service/internal/app"
 	"github.com/his-vita/patients-service/internal/config"
@@ -17,14 +13,8 @@ func main() {
 
 	log := logger.New(cfg.Env)
 
-	application := app.New(&cfg.Db)
+	application := app.New(&cfg.Db, log)
+	defer application.PgContext.Close()
 
-	go application.HttpServer.MustRun(fmt.Sprintf(":%v", cfg.Server.Port))
-
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
-
-	sign := <-stop
-
-	log.Info("stopping application", slog.String("signal", sign.String()))
+	application.HttpServer.MustRun(fmt.Sprintf(":%v", cfg.Server.Port))
 }
