@@ -1,16 +1,26 @@
 package repository
 
 import (
+	"path/filepath"
+
 	"github.com/his-vita/patients-service/internal/database"
+	"github.com/his-vita/patients-service/pkg/sqlutils"
 )
 
 type PatientRepository struct {
 	pgContext *database.PgContext
+	sqlPath   string
 }
 
-func NewPatientRepository(pgContext *database.PgContext) *PatientRepository {
+func NewPatientRepository(pgContext *database.PgContext, sqlPath string) *PatientRepository {
+	filePath := filepath.Join(sqlPath, "patients")
+	if err := sqlutils.CheckSQLFilesPath(filePath); err != nil {
+		panic(err)
+	}
+
 	return &PatientRepository{
 		pgContext: pgContext,
+		sqlPath:   filePath,
 	}
 }
 

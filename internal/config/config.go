@@ -23,6 +23,7 @@ type Db struct {
 	Password string `yaml:"password" env-default:"postgres"`
 	DbName   string `yaml:"db_name" env-default:"patients_db"`
 	SSLMode  string `yaml:"ssl_mode" env-default:"disable"`
+	SqlPath  string `yaml:"sql_path" env-required:"true"`
 }
 
 func MustLoad() *Config {

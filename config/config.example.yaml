@@ -7,3 +7,5 @@ db: # db connection properties
   user: 
   password: 
   db_name: 
+  ssl_mode:
+  sql_path: # path to sql files
