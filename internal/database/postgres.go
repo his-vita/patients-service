@@ -13,9 +13,7 @@ import (
 const timeout = 30 * time.Second
 
 type PgContext struct {
-	Pool    *pgxpool.Pool
-	Context context.Context
-	cancel  context.CancelFunc
+	Pool *pgxpool.Pool
 }
 
 func NewPostgresConnect(dbCfg *config.Db) *PgContext {
@@ -28,6 +26,7 @@ func NewPostgresConnect(dbCfg *config.Db) *PgContext {
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 
 	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
@@ -39,13 +38,18 @@ func NewPostgresConnect(dbCfg *config.Db) *PgContext {
 	}
 
 	return &PgContext{
-		Pool:    pool,
-		Context: ctx,
-		cancel:  cancel,
+		Pool: pool,
 	}
 }
 
+func (pg *PgContext) WithTimeout(timeout time.Duration) (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), timeout)
+}
+
+func (pg *PgContext) DefaultTimeoutCtx() (context.Context, context.CancelFunc) {
+	return pg.WithTimeout(timeout)
+}
+
 func (p *PgContext) Close() {
-	p.cancel()
 	p.Pool.Close()
 }

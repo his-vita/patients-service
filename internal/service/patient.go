@@ -1,7 +1,9 @@
 package service
 
 import (
+	"github.com/google/uuid"
 	"github.com/his-vita/patients-service/internal/repository"
+	"github.com/his-vita/patients-service/models"
 )
 
 type PatientService struct {
@@ -14,8 +16,13 @@ func NewPatientService(r *repository.PatientRepository) *PatientService {
 	}
 }
 
-func (ps *PatientService) GetPatient() {
-	ps.patientRepository.GetPatient()
+func (ps *PatientService) GetPatient(id *uuid.UUID) (*models.Patient, error) {
+	patient, err := ps.patientRepository.GetPatient(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return patient, nil
 }
 
 func (ps *PatientService) GetAllPatients() {
@@ -26,8 +33,13 @@ func (ps *PatientService) UpdatePatient() {
 	ps.patientRepository.UpdatePatient()
 }
 
-func (ps *PatientService) CreatePatient() {
-	ps.patientRepository.CreatePatient()
+func (ps *PatientService) CreatePatient(patient *models.Patient) error {
+	err := ps.patientRepository.CreatePatient(patient)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (ps *PatientService) DeletePatient() {

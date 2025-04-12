@@ -21,9 +21,9 @@ type App struct {
 func New(dbCfg *config.Db, log *slog.Logger) *App {
 	pgContext := database.NewPostgresConnect(dbCfg)
 
-	patientRepository := repository.NewPatientRepository(pgContext, dbCfg.SqlPath)
+	patientRepository := repository.NewPatientRepository(log, pgContext, dbCfg.SqlPath)
 	patientService := service.NewPatientService(patientRepository)
-	patientController := controller.NewPatientController(patientService)
+	patientController := controller.NewPatientController(log, patientService)
 
 	httpServer := httpserver.New()
 
