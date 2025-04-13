@@ -42,6 +42,20 @@ func (ps *PatientService) CreatePatient(patient *models.Patient) error {
 	return nil
 }
 
-func (ps *PatientService) DeletePatient() {
-	ps.patientRepository.DeletePatient()
+func (ps *PatientService) MarkPatientAsDeleted(id *uuid.UUID) error {
+	err := ps.patientRepository.MarkPatientAsDeleted(id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ps *PatientService) UnMarkPatientAsDeleted(id *uuid.UUID) error {
+	err := ps.patientRepository.UnMarkPatientAsDeleted(id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

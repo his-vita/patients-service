@@ -5,6 +5,7 @@ go 1.24.1
 require github.com/jackc/pgx v3.6.2+incompatible
 
 require (
+	cloud.google.com/go v0.120.0 // indirect
 	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/bytedance/sonic v1.13.2 // indirect
 	github.com/bytedance/sonic/loader v0.2.4 // indirect

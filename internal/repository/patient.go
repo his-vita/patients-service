@@ -76,7 +76,6 @@ func (pr *PatientRepository) UpdatePatient() {
 }
 
 func (pr *PatientRepository) CreatePatient(patient *models.Patient) error {
-	fmt.Println(pr.sqlFiles)
 	query, exists := pr.sqlFiles["insert_patient.sql"]
 	if !exists {
 		return fmt.Errorf("SQL query insert_patient not found")
@@ -85,7 +84,7 @@ func (pr *PatientRepository) CreatePatient(patient *models.Patient) error {
 	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
 
-	_, err := pr.pgContext.Pool.Exec(ctx, query, patient.FirstName, patient.LastName, patient.MiddleName, patient.BirthDate, patient.PhoneNumber, patient.Email)
+	_, err := pr.pgContext.Pool.Exec(ctx, query, patient.FirstName, patient.LastName, patient.MiddleName, patient.BirthDate, patient.PhoneNumber, patient.Email, "admin")
 	if err != nil {
 		return fmt.Errorf("error creating patient: %w", err)
 	}
@@ -93,6 +92,36 @@ func (pr *PatientRepository) CreatePatient(patient *models.Patient) error {
 	return nil
 }
 
-func (pr *PatientRepository) DeletePatient() {
-	panic("impl me!")
+func (pr *PatientRepository) MarkPatientAsDeleted(id *uuid.UUID) error {
+	query, exists := pr.sqlFiles["mark_deleted_patient.sql"]
+	if !exists {
+		return fmt.Errorf("SQL query mark_deleted_patient not found")
+	}
+
+	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
+	defer cancel()
+
+	_, err := pr.pgContext.Pool.Exec(ctx, query, id, "admin")
+	if err != nil {
+		return fmt.Errorf("error mark deleted patient: %w", err)
+	}
+
+	return nil
+}
+
+func (pr *PatientRepository) UnMarkPatientAsDeleted(id *uuid.UUID) error {
+	query, exists := pr.sqlFiles["unmark_deleted_patient.sql"]
+	if !exists {
+		return fmt.Errorf("SQL query unmark_deleted_patient not found")
+	}
+
+	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
+	defer cancel()
+
+	_, err := pr.pgContext.Pool.Exec(ctx, query, id, "admin")
+	if err != nil {
+		return fmt.Errorf("error unmark deleted patient: %w", err)
+	}
+
+	return nil
 }

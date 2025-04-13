@@ -9,10 +9,12 @@ CREATE TABLE patients (
     birth_date DATE NOT NULL,
     phone_number VARCHAR(11),
     email VARCHAR(64),
-    deleted_ts TIMESTAMP DEFAULT NULL,
-    deleted_by VARCHAR(64) DEFAULT NULL,
+    created_ts TIMESTAMP DEFAULT NULL,
+    created_by VARCHAR(64) DEFAULT NULL,
     updated_ts TIMESTAMP DEFAULT NULL,
     updated_by VARCHAR(64) DEFAULT NULL,
+    deleted_ts TIMESTAMP DEFAULT NULL,
+    deleted_by VARCHAR(64) DEFAULT NULL,
     version int DEFAULT 0
 );
 

@@ -23,10 +23,14 @@ func NewPatientController(log *slog.Logger, s *service.PatientService) *PatientC
 }
 
 func (pc *PatientController) GetPatient(c *gin.Context) {
-	rawID, _ := c.Get("id")
-	id := rawID.(uuid.UUID)
+	id, exists := c.Get("id")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID not found in context"})
+		return
+	}
+	uuid := id.(uuid.UUID)
 
-	patient, err := pc.patientService.GetPatient(&id)
+	patient, err := pc.patientService.GetPatient(&uuid)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -61,6 +65,36 @@ func (pc *PatientController) CreatePatient(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Patient created successfully"})
 }
 
-func (pc *PatientController) DeletePatient(c *gin.Context) {
-	pc.patientService.DeletePatient()
+func (pc *PatientController) MarkPatientAsDeleted(c *gin.Context) {
+	id, exists := c.Get("id")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID not found in context"})
+		return
+	}
+	uuid := id.(uuid.UUID)
+
+	err := pc.patientService.MarkPatientAsDeleted(&uuid)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, nil)
+}
+
+func (pc *PatientController) UnMarkPatientAsDeleted(c *gin.Context) {
+	id, exists := c.Get("id")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID not found in context"})
+		return
+	}
+	uuid := id.(uuid.UUID)
+
+	err := pc.patientService.UnMarkPatientAsDeleted(&uuid)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, nil)
 }
