@@ -6,6 +6,11 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
+const (
+	EnvLocal = "local"
+	EnvProd  = "prod"
+)
+
 type Config struct {
 	Env    string `yaml:"env" env-default:"local"`
 	Server Server `yaml:"server"`
@@ -13,7 +18,8 @@ type Config struct {
 }
 
 type Server struct {
-	Port int `yaml:"port" env-default:"8080"`
+	Host string `yaml:"host" env-default:"localhost"`
+	Port int    `yaml:"port" env-default:"8080"`
 }
 
 type Db struct {
