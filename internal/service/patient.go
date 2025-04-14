@@ -25,12 +25,22 @@ func (ps *PatientService) GetPatient(id *uuid.UUID) (*models.Patient, error) {
 	return patient, nil
 }
 
-func (ps *PatientService) GetAllPatients() {
-	ps.patientRepository.GetAllPatients()
+func (ps *PatientService) GetAllPatients(limit int, offset int) ([]models.Patient, error) {
+	patients, err := ps.patientRepository.GetPatients(limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	return patients, nil
 }
 
-func (ps *PatientService) UpdatePatient() {
-	ps.patientRepository.UpdatePatient()
+func (ps *PatientService) UpdatePatient(patient *models.Patient) error {
+	err := ps.patientRepository.UpdatePatient(patient)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (ps *PatientService) CreatePatient(patient *models.Patient) error {

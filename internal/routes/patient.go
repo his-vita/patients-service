@@ -10,8 +10,9 @@ func PatientRoutes(rg *gin.RouterGroup, patientCtrl *controller.PatientControlle
 	pg := rg.Group("/patients")
 	{
 		pg.GET("/:id", middleware.ValidateUUIDParam("id"), patientCtrl.GetPatient)
+		pg.GET("/list/:limit/:offset", patientCtrl.GetPatients)
 		pg.POST("/", patientCtrl.CreatePatient)
-		pg.PUT("/:id", patientCtrl.UpdatePatient)
+		pg.PUT("/", patientCtrl.UpdatePatient)
 		pg.PATCH("/mark_deleted/:id", middleware.ValidateUUIDParam("id"), patientCtrl.MarkPatientAsDeleted)
 		pg.PATCH("/unmark_deleted/:id", middleware.ValidateUUIDParam("id"), patientCtrl.UnMarkPatientAsDeleted)
 	}

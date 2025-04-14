@@ -13,4 +13,5 @@ type Patient struct {
 	BirthDate   civil.Date `json:"birth_date"`
 	PhoneNumber string     `json:"phone_number"`
 	Email       string     `json:"email"`
+	Version     int        `json:"version"`
 }

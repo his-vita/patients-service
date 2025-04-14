@@ -3,6 +3,7 @@ package controller
 import (
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -39,12 +40,47 @@ func (pc *PatientController) GetPatient(c *gin.Context) {
 	c.JSON(http.StatusOK, patient)
 }
 
-func (pc *PatientController) GetAllPatients(c *gin.Context) {
-	pc.patientService.GetAllPatients()
+func (pc *PatientController) GetPatients(c *gin.Context) {
+	limitStr := c.Param("limit")
+	offsetStr := c.Param("offset")
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid limit"})
+		return
+	}
+
+	offset, err := strconv.Atoi(offsetStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid offset"})
+		return
+	}
+
+	patients, err := pc.patientService.GetAllPatients(limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, patients)
 }
 
 func (pc *PatientController) UpdatePatient(c *gin.Context) {
-	pc.patientService.UpdatePatient()
+	var patient models.Patient
+
+	if err := c.ShouldBindJSON(&patient); err != nil {
+		pc.log.Error("UpdatePatient", "ShouldBindJSON", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})
+		return
+	}
+
+	if err := pc.patientService.UpdatePatient(&patient); err != nil {
+		pc.log.Error("UpdatePatient", "PatientService", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Patient updated successfully"})
 }
 
 func (pc *PatientController) CreatePatient(c *gin.Context) {

@@ -37,15 +37,15 @@ func NewPatientRepository(log *slog.Logger, pgContext *database.PgContext, sqlPa
 }
 
 func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*models.Patient, error) {
-	var patient models.Patient
-
-	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
-	defer cancel()
-
 	query, exists := pr.sqlFiles["get_patient_by_id.sql"]
 	if !exists {
 		return nil, fmt.Errorf("SQL query insert_patient not found")
 	}
+
+	var patient models.Patient
+
+	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
+	defer cancel()
 
 	err := pr.pgContext.Pool.QueryRow(ctx, query, id).Scan(
 		&patient.Id,
@@ -67,12 +67,63 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*models.Patient, error) 
 	return &patient, nil
 }
 
-func (pr *PatientRepository) GetAllPatients() {
-	panic("impl me!")
+func (pr *PatientRepository) GetPatients(limit int, offset int) ([]models.Patient, error) {
+	query, exists := pr.sqlFiles["get_patients.sql"]
+	if !exists {
+		return nil, fmt.Errorf("SQL query get_patients not found")
+	}
+
+	var patients []models.Patient
+
+	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
+	defer cancel()
+
+	rows, err := pr.pgContext.Pool.Query(ctx, query, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute query: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var patient models.Patient
+		if err := rows.Scan(
+			&patient.Id,
+			&patient.FirstName,
+			&patient.LastName,
+			&patient.MiddleName,
+			&patient.BirthDate,
+			&patient.PhoneNumber,
+			&patient.Email,
+			&patient.Version); err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+		patients = append(patients, patient)
+	}
+
+	return patients, nil
 }
 
-func (pr *PatientRepository) UpdatePatient() {
-	panic("impl me!")
+func (pr *PatientRepository) UpdatePatient(patient *models.Patient) error {
+	query, exists := pr.sqlFiles["update_patient.sql"]
+	if !exists {
+		return fmt.Errorf("SQL query update_patient not found")
+	}
+
+	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
+	defer cancel()
+
+	res, err := pr.pgContext.Pool.Exec(ctx, query, patient.Id, patient.FirstName, patient.LastName, patient.MiddleName, patient.BirthDate, patient.PhoneNumber, patient.Email, "admin", patient.Version)
+	if err != nil {
+		return fmt.Errorf("error update patient: %w", err)
+	}
+
+	rowsAffected := res.RowsAffected()
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("error update patient. Version in DB is higher")
+	}
+
+	return nil
 }
 
 func (pr *PatientRepository) CreatePatient(patient *models.Patient) error {
