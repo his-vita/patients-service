@@ -10,36 +10,33 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-const timeout = 30 * time.Second
-
 type PgContext struct {
-	Pool *pgxpool.Pool
+	Pool        *pgxpool.Pool
+	connTimeout time.Duration
 }
 
-func NewPostgresConnect(dbCfg *config.Db) *PgContext {
+func NewPostgresConnect(dbCfg *config.Db) (*PgContext, error) {
 	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s",
 		dbCfg.Host, dbCfg.Port, dbCfg.User, dbCfg.Password, dbCfg.DbName)
 
 	poolConfig, err := pgxpool.ParseConfig(connStr)
 	if err != nil {
-		panic(fmt.Sprintf("error: %s", err))
+		return nil, fmt.Errorf("error: %s", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
+	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 	if err != nil {
-		panic(fmt.Sprintf("error: %s", err))
+		return nil, fmt.Errorf("error: %s", err)
 	}
 
-	if err := pool.Ping(ctx); err != nil {
-		panic(fmt.Sprintf("error: %s", err))
+	if err := pool.Ping(context.Background()); err != nil {
+		return nil, fmt.Errorf("error: %s", err)
 	}
 
 	return &PgContext{
-		Pool: pool,
-	}
+		Pool:        pool,
+		connTimeout: 30 * time.Second,
+	}, nil
 }
 
 func (pg *PgContext) WithTimeout(timeout time.Duration) (context.Context, context.CancelFunc) {
@@ -47,9 +44,11 @@ func (pg *PgContext) WithTimeout(timeout time.Duration) (context.Context, contex
 }
 
 func (pg *PgContext) DefaultTimeoutCtx() (context.Context, context.CancelFunc) {
-	return pg.WithTimeout(timeout)
+	return pg.WithTimeout(pg.connTimeout)
 }
 
 func (p *PgContext) Close() {
-	p.Pool.Close()
+	if p.Pool != nil {
+		p.Pool.Close()
+	}
 }

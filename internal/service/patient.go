@@ -2,21 +2,29 @@ package service
 
 import (
 	"github.com/google/uuid"
-	"github.com/his-vita/patients-service/internal/repository"
-	"github.com/his-vita/patients-service/models"
+	"github.com/his-vita/patients-service/internal/entity"
 )
 
-type PatientService struct {
-	patientRepository *repository.PatientRepository
+type PatientRepository interface {
+	GetPatient(id *uuid.UUID) (*entity.Patient, error)
+	GetPatients(limit int, offset int) (*[]entity.Patient, error)
+	UpdatePatient(patient *entity.Patient) error
+	CreatePatient(patient *entity.Patient) error
+	MarkPatientAsDeleted(id *uuid.UUID) error
+	UnMarkPatientAsDeleted(id *uuid.UUID) error
 }
 
-func NewPatientService(r *repository.PatientRepository) *PatientService {
+type PatientService struct {
+	patientRepository PatientRepository
+}
+
+func NewPatientService(r PatientRepository) *PatientService {
 	return &PatientService{
 		patientRepository: r,
 	}
 }
 
-func (ps *PatientService) GetPatient(id *uuid.UUID) (*models.Patient, error) {
+func (ps *PatientService) GetPatient(id *uuid.UUID) (*entity.Patient, error) {
 	patient, err := ps.patientRepository.GetPatient(id)
 	if err != nil {
 		return nil, err
@@ -25,7 +33,7 @@ func (ps *PatientService) GetPatient(id *uuid.UUID) (*models.Patient, error) {
 	return patient, nil
 }
 
-func (ps *PatientService) GetAllPatients(limit int, offset int) ([]models.Patient, error) {
+func (ps *PatientService) GetPatients(limit int, offset int) (*[]entity.Patient, error) {
 	patients, err := ps.patientRepository.GetPatients(limit, offset)
 	if err != nil {
 		return nil, err
@@ -34,7 +42,7 @@ func (ps *PatientService) GetAllPatients(limit int, offset int) ([]models.Patien
 	return patients, nil
 }
 
-func (ps *PatientService) UpdatePatient(patient *models.Patient) error {
+func (ps *PatientService) UpdatePatient(patient *entity.Patient) error {
 	err := ps.patientRepository.UpdatePatient(patient)
 	if err != nil {
 		return err
@@ -43,7 +51,7 @@ func (ps *PatientService) UpdatePatient(patient *models.Patient) error {
 	return nil
 }
 
-func (ps *PatientService) CreatePatient(patient *models.Patient) error {
+func (ps *PatientService) CreatePatient(patient *entity.Patient) error {
 	err := ps.patientRepository.CreatePatient(patient)
 	if err != nil {
 		return err

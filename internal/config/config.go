@@ -15,6 +15,7 @@ type Config struct {
 	Env    string `yaml:"env" env-default:"local"`
 	Server Server `yaml:"server"`
 	Db     Db     `yaml:"db"`
+	Sql    Sql    `yaml:"sql"`
 }
 
 type Server struct {
@@ -29,7 +30,10 @@ type Db struct {
 	Password string `yaml:"password" env-default:"postgres"`
 	DbName   string `yaml:"db_name" env-default:"patients_db"`
 	SSLMode  string `yaml:"ssl_mode" env-default:"disable"`
-	SqlPath  string `yaml:"sql_path" env-required:"true"`
+}
+
+type Sql struct {
+	Path string `yaml:"path" env-required:"true"`
 }
 
 func MustLoad() *Config {

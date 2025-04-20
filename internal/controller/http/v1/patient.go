@@ -1,4 +1,4 @@
-package controller
+package v1
 
 import (
 	"log/slog"
@@ -7,16 +7,24 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/his-vita/patients-service/internal/service"
-	"github.com/his-vita/patients-service/models"
+	"github.com/his-vita/patients-service/internal/entity"
 )
+
+type PatientService interface {
+	GetPatient(id *uuid.UUID) (*entity.Patient, error)
+	GetPatients(limit int, offset int) (*[]entity.Patient, error)
+	UpdatePatient(patient *entity.Patient) error
+	CreatePatient(patient *entity.Patient) error
+	MarkPatientAsDeleted(id *uuid.UUID) error
+	UnMarkPatientAsDeleted(id *uuid.UUID) error
+}
 
 type PatientController struct {
 	log            *slog.Logger
-	patientService *service.PatientService
+	patientService PatientService
 }
 
-func NewPatientController(log *slog.Logger, s *service.PatientService) *PatientController {
+func NewPatientController(log *slog.Logger, s PatientService) *PatientController {
 	return &PatientController{
 		log:            log,
 		patientService: s,
@@ -56,7 +64,7 @@ func (pc *PatientController) GetPatients(c *gin.Context) {
 		return
 	}
 
-	patients, err := pc.patientService.GetAllPatients(limit, offset)
+	patients, err := pc.patientService.GetPatients(limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -66,7 +74,7 @@ func (pc *PatientController) GetPatients(c *gin.Context) {
 }
 
 func (pc *PatientController) UpdatePatient(c *gin.Context) {
-	var patient models.Patient
+	var patient entity.Patient
 
 	if err := c.ShouldBindJSON(&patient); err != nil {
 		pc.log.Error("UpdatePatient", "ShouldBindJSON", err)
@@ -84,7 +92,7 @@ func (pc *PatientController) UpdatePatient(c *gin.Context) {
 }
 
 func (pc *PatientController) CreatePatient(c *gin.Context) {
-	var patient models.Patient
+	var patient entity.Patient
 
 	if err := c.ShouldBindJSON(&patient); err != nil {
 		pc.log.Error("CreatePatient", "ShouldBindJSON", err)

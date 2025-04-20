@@ -3,51 +3,40 @@ package repository
 import (
 	"fmt"
 	"log/slog"
-	"path/filepath"
 
 	"github.com/google/uuid"
-	"github.com/his-vita/patients-service/internal/database"
-	"github.com/his-vita/patients-service/models"
-	"github.com/his-vita/patients-service/pkg/sqlutils"
+	"github.com/his-vita/patients-service/internal/entity"
+	"github.com/his-vita/patients-service/internal/infrastructure/database"
+	"github.com/his-vita/patients-service/internal/infrastructure/sqlstore"
 	"github.com/jackc/pgx"
 )
 
 type PatientRepository struct {
 	log       *slog.Logger
 	pgContext *database.PgContext
-	sqlFiles  map[string]string
+	sqlStore  *sqlstore.SqlStore
 }
 
-func NewPatientRepository(log *slog.Logger, pgContext *database.PgContext, sqlPath string) *PatientRepository {
-	filePath := filepath.Join(sqlPath, "patients")
-	if err := sqlutils.CheckSQLFilesPath(filePath); err != nil {
-		panic(err)
-	}
-
-	sqlFiles, err := sqlutils.LoadSQLFiles(filePath)
-	if err != nil {
-		panic(err)
-	}
-
+func NewPatientRepository(log *slog.Logger, pgContext *database.PgContext, sqlStore *sqlstore.SqlStore) *PatientRepository {
 	return &PatientRepository{
 		log:       log,
 		pgContext: pgContext,
-		sqlFiles:  sqlFiles,
+		sqlStore:  sqlStore,
 	}
 }
 
-func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*models.Patient, error) {
-	query, exists := pr.sqlFiles["get_patient_by_id.sql"]
-	if !exists {
-		return nil, fmt.Errorf("SQL query insert_patient not found")
+func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*entity.Patient, error) {
+	query, err := pr.sqlStore.GetQuery("get_patient_by_id.sql")
+	if err != nil {
+		return nil, fmt.Errorf("SQL query get_patient_by_id.sql not found")
 	}
 
-	var patient models.Patient
+	var patient entity.Patient
 
 	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
 
-	err := pr.pgContext.Pool.QueryRow(ctx, query, id).Scan(
+	err = pr.pgContext.Pool.QueryRow(ctx, query, id).Scan(
 		&patient.Id,
 		&patient.FirstName,
 		&patient.LastName,
@@ -67,13 +56,13 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*models.Patient, error) 
 	return &patient, nil
 }
 
-func (pr *PatientRepository) GetPatients(limit int, offset int) ([]models.Patient, error) {
-	query, exists := pr.sqlFiles["get_patients.sql"]
-	if !exists {
-		return nil, fmt.Errorf("SQL query get_patients not found")
+func (pr *PatientRepository) GetPatients(limit int, offset int) (*[]entity.Patient, error) {
+	query, err := pr.sqlStore.GetQuery("get_patients.sql")
+	if err != nil {
+		return nil, fmt.Errorf("SQL query get_patients.sql not found")
 	}
 
-	var patients []models.Patient
+	var patients []entity.Patient
 
 	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
@@ -85,7 +74,7 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) ([]models.Patien
 	defer rows.Close()
 
 	for rows.Next() {
-		var patient models.Patient
+		var patient entity.Patient
 		if err := rows.Scan(
 			&patient.Id,
 			&patient.FirstName,
@@ -100,13 +89,13 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) ([]models.Patien
 		patients = append(patients, patient)
 	}
 
-	return patients, nil
+	return &patients, nil
 }
 
-func (pr *PatientRepository) UpdatePatient(patient *models.Patient) error {
-	query, exists := pr.sqlFiles["update_patient.sql"]
-	if !exists {
-		return fmt.Errorf("SQL query update_patient not found")
+func (pr *PatientRepository) UpdatePatient(patient *entity.Patient) error {
+	query, err := pr.sqlStore.GetQuery("update_patient.sql")
+	if err != nil {
+		return fmt.Errorf("SQL query update_patient.sql not found")
 	}
 
 	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
@@ -126,16 +115,16 @@ func (pr *PatientRepository) UpdatePatient(patient *models.Patient) error {
 	return nil
 }
 
-func (pr *PatientRepository) CreatePatient(patient *models.Patient) error {
-	query, exists := pr.sqlFiles["insert_patient.sql"]
-	if !exists {
-		return fmt.Errorf("SQL query insert_patient not found")
+func (pr *PatientRepository) CreatePatient(patient *entity.Patient) error {
+	query, err := pr.sqlStore.GetQuery("insert_patient.sql")
+	if err != nil {
+		return fmt.Errorf("SQL query insert_patient.sql not found")
 	}
 
 	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
 
-	_, err := pr.pgContext.Pool.Exec(ctx, query, patient.FirstName, patient.LastName, patient.MiddleName, patient.BirthDate, patient.PhoneNumber, patient.Email, "admin")
+	_, err = pr.pgContext.Pool.Exec(ctx, query, patient.FirstName, patient.LastName, patient.MiddleName, patient.BirthDate, patient.PhoneNumber, patient.Email, "admin")
 	if err != nil {
 		return fmt.Errorf("error creating patient: %w", err)
 	}
@@ -144,15 +133,15 @@ func (pr *PatientRepository) CreatePatient(patient *models.Patient) error {
 }
 
 func (pr *PatientRepository) MarkPatientAsDeleted(id *uuid.UUID) error {
-	query, exists := pr.sqlFiles["mark_deleted_patient.sql"]
-	if !exists {
-		return fmt.Errorf("SQL query mark_deleted_patient not found")
+	query, err := pr.sqlStore.GetQuery("mark_deleted_patient.sql")
+	if err != nil {
+		return fmt.Errorf("SQL query mark_deleted_patient.sql not found")
 	}
 
 	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
 
-	_, err := pr.pgContext.Pool.Exec(ctx, query, id, "admin")
+	_, err = pr.pgContext.Pool.Exec(ctx, query, id, "admin")
 	if err != nil {
 		return fmt.Errorf("error mark deleted patient: %w", err)
 	}
@@ -161,15 +150,15 @@ func (pr *PatientRepository) MarkPatientAsDeleted(id *uuid.UUID) error {
 }
 
 func (pr *PatientRepository) UnMarkPatientAsDeleted(id *uuid.UUID) error {
-	query, exists := pr.sqlFiles["unmark_deleted_patient.sql"]
-	if !exists {
-		return fmt.Errorf("SQL query unmark_deleted_patient not found")
+	query, err := pr.sqlStore.GetQuery("unmark_deleted_patient.sql")
+	if err != nil {
+		return fmt.Errorf("SQL query unmark_deleted_patient.sql not found")
 	}
 
 	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
 
-	_, err := pr.pgContext.Pool.Exec(ctx, query, id, "admin")
+	_, err = pr.pgContext.Pool.Exec(ctx, query, id, "admin")
 	if err != nil {
 		return fmt.Errorf("error unmark deleted patient: %w", err)
 	}

@@ -9,4 +9,5 @@ db: # db connection properties
   password: 
   db_name: 
   ssl_mode:
-  sql_path: # path to sql files
+sql:
+  path: sql

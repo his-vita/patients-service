@@ -1,4 +1,4 @@
-package models
+package entity
 
 import (
 	"cloud.google.com/go/civil"
