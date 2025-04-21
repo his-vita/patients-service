@@ -42,6 +42,7 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*entity.Patient, error) 
 		&patient.LastName,
 		&patient.MiddleName,
 		&patient.BirthDate,
+		&patient.Gender,
 		&patient.PhoneNumber,
 		&patient.Email,
 	)
@@ -81,6 +82,7 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) (*[]entity.Patie
 			&patient.LastName,
 			&patient.MiddleName,
 			&patient.BirthDate,
+			&patient.Gender,
 			&patient.PhoneNumber,
 			&patient.Email,
 			&patient.Version); err != nil {
@@ -101,7 +103,17 @@ func (pr *PatientRepository) UpdatePatient(patient *entity.Patient) error {
 	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
 
-	res, err := pr.pgContext.Pool.Exec(ctx, query, patient.Id, patient.FirstName, patient.LastName, patient.MiddleName, patient.BirthDate, patient.PhoneNumber, patient.Email, "admin", patient.Version)
+	res, err := pr.pgContext.Pool.Exec(ctx, query,
+		patient.Id,
+		patient.FirstName,
+		patient.LastName,
+		patient.MiddleName,
+		patient.BirthDate,
+		patient.Gender,
+		patient.PhoneNumber,
+		patient.Email,
+		"admin",
+		patient.Version)
 	if err != nil {
 		return fmt.Errorf("error update patient: %w", err)
 	}
@@ -124,7 +136,15 @@ func (pr *PatientRepository) CreatePatient(patient *entity.Patient) error {
 	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
 
-	_, err = pr.pgContext.Pool.Exec(ctx, query, patient.FirstName, patient.LastName, patient.MiddleName, patient.BirthDate, patient.PhoneNumber, patient.Email, "admin")
+	_, err = pr.pgContext.Pool.Exec(ctx, query,
+		patient.FirstName,
+		patient.LastName,
+		patient.MiddleName,
+		patient.BirthDate,
+		patient.Gender,
+		patient.PhoneNumber,
+		patient.Email,
+		"admin")
 	if err != nil {
 		return fmt.Errorf("error creating patient: %w", err)
 	}
