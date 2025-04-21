@@ -7,6 +7,7 @@ CREATE TABLE patients (
     last_name VARCHAR(100) NOT NULL,
     middle_name VARCHAR(100),
     birth_date DATE NOT NULL,
+    gender bool DEFAULT NULL,
     phone_number VARCHAR(11),
     email VARCHAR(64),
     created_ts TIMESTAMP DEFAULT NULL,
