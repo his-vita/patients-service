@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -8,7 +9,7 @@ import (
 	"github.com/his-vita/patients-service/internal/entity"
 	"github.com/his-vita/patients-service/internal/infrastructure/database"
 	"github.com/his-vita/patients-service/internal/infrastructure/sqlstore"
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v5"
 )
 
 type PatientRepository struct {
@@ -32,7 +33,6 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*entity.Patient, error) 
 	}
 
 	var patient entity.Patient
-
 	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
 
@@ -45,10 +45,16 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*entity.Patient, error) 
 		&patient.Gender,
 		&patient.PhoneNumber,
 		&patient.Email,
+		&patient.CreatedTS,
+		&patient.CreatedBy,
+		&patient.UpdatedTS,
+		&patient.UpdatedBy,
+		&patient.DeletedTS,
+		&patient.DeletedBy,
+		&patient.Version,
 	)
-
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("patient with id %s not found", id)
 		}
 		return nil, fmt.Errorf("error retrieving patient: %w", err)
@@ -63,8 +69,6 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) (*[]entity.Patie
 		return nil, fmt.Errorf("SQL query get_patients.sql not found")
 	}
 
-	var patients []entity.Patient
-
 	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
 
@@ -74,21 +78,9 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) (*[]entity.Patie
 	}
 	defer rows.Close()
 
-	for rows.Next() {
-		var patient entity.Patient
-		if err := rows.Scan(
-			&patient.Id,
-			&patient.FirstName,
-			&patient.LastName,
-			&patient.MiddleName,
-			&patient.BirthDate,
-			&patient.Gender,
-			&patient.PhoneNumber,
-			&patient.Email,
-			&patient.Version); err != nil {
-			return nil, fmt.Errorf("failed to scan row: %w", err)
-		}
-		patients = append(patients, patient)
+	patients, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Patient])
+	if err != nil {
+		return nil, fmt.Errorf("failed collecting rows: %w", err)
 	}
 
 	return &patients, nil
