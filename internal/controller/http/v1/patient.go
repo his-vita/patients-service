@@ -7,12 +7,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/his-vita/patients-service/internal/dto"
 	"github.com/his-vita/patients-service/internal/entity"
 )
 
 type PatientService interface {
 	GetPatient(id *uuid.UUID) (*entity.Patient, error)
-	GetPatients(limit int, offset int) (*[]entity.Patient, error)
+	GetPatients(limit int, offset int) (*[]dto.PatientDTO, error)
 	UpdatePatient(patient *entity.Patient) error
 	CreatePatient(patient *entity.Patient) error
 	MarkPatientAsDeleted(id *uuid.UUID) error

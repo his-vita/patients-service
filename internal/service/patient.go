@@ -2,7 +2,9 @@ package service
 
 import (
 	"github.com/google/uuid"
+	"github.com/his-vita/patients-service/internal/dto"
 	"github.com/his-vita/patients-service/internal/entity"
+	"github.com/his-vita/patients-service/internal/mapper"
 )
 
 type PatientRepository interface {
@@ -16,11 +18,13 @@ type PatientRepository interface {
 
 type PatientService struct {
 	patientRepository PatientRepository
+	patientMapper     *mapper.PatientMapper
 }
 
-func NewPatientService(r PatientRepository) *PatientService {
+func NewPatientService(r PatientRepository, patientMapper *mapper.PatientMapper) *PatientService {
 	return &PatientService{
 		patientRepository: r,
+		patientMapper:     patientMapper,
 	}
 }
 
@@ -33,13 +37,20 @@ func (ps *PatientService) GetPatient(id *uuid.UUID) (*entity.Patient, error) {
 	return patient, nil
 }
 
-func (ps *PatientService) GetPatients(limit int, offset int) (*[]entity.Patient, error) {
+func (ps *PatientService) GetPatients(limit int, offset int) (*[]dto.PatientDTO, error) {
 	patients, err := ps.patientRepository.GetPatients(limit, offset)
 	if err != nil {
 		return nil, err
 	}
 
-	return patients, nil
+	patientDTOs := make([]dto.PatientDTO, len(*patients))
+
+	for i, patient := range *patients {
+		patientDTO := ps.patientMapper.ToDTO(&patient)
+		patientDTOs[i] = *patientDTO
+	}
+
+	return &patientDTOs, nil
 }
 
 func (ps *PatientService) UpdatePatient(patient *entity.Patient) error {

@@ -3,7 +3,6 @@ package repository
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/his-vita/patients-service/internal/entity"
@@ -13,14 +12,12 @@ import (
 )
 
 type PatientRepository struct {
-	log       *slog.Logger
 	pgContext *database.PgContext
 	sqlStore  *sqlstore.SqlStore
 }
 
-func NewPatientRepository(log *slog.Logger, pgContext *database.PgContext, sqlStore *sqlstore.SqlStore) *PatientRepository {
+func NewPatientRepository(pgContext *database.PgContext, sqlStore *sqlstore.SqlStore) *PatientRepository {
 	return &PatientRepository{
-		log:       log,
 		pgContext: pgContext,
 		sqlStore:  sqlStore,
 	}
@@ -37,14 +34,12 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*entity.Patient, error) 
 	defer cancel()
 
 	err = pr.pgContext.Pool.QueryRow(ctx, query, id).Scan(
-		&patient.Id,
+		&patient.ID,
 		&patient.FirstName,
 		&patient.LastName,
 		&patient.MiddleName,
 		&patient.BirthDate,
 		&patient.Gender,
-		&patient.PhoneNumber,
-		&patient.Email,
 		&patient.CreatedTS,
 		&patient.CreatedBy,
 		&patient.UpdatedTS,
@@ -78,9 +73,27 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) (*[]entity.Patie
 	}
 	defer rows.Close()
 
-	patients, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Patient])
-	if err != nil {
-		return nil, fmt.Errorf("failed collecting rows: %w", err)
+	var patients []entity.Patient
+
+	for rows.Next() {
+		var patient entity.Patient
+		patient.Contact = &entity.Contact{}
+
+		err := rows.Scan(
+			&patient.ID,
+			&patient.FirstName,
+			&patient.LastName,
+			&patient.MiddleName,
+			&patient.BirthDate,
+			&patient.Gender,
+			&patient.Contact.PhoneNumber,
+			&patient.Contact.Email,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
+
+		patients = append(patients, patient)
 	}
 
 	return &patients, nil
@@ -96,14 +109,12 @@ func (pr *PatientRepository) UpdatePatient(patient *entity.Patient) error {
 	defer cancel()
 
 	res, err := pr.pgContext.Pool.Exec(ctx, query,
-		patient.Id,
+		patient.ID,
 		patient.FirstName,
 		patient.LastName,
 		patient.MiddleName,
 		patient.BirthDate,
 		patient.Gender,
-		patient.PhoneNumber,
-		patient.Email,
 		"admin",
 		patient.Version)
 	if err != nil {
@@ -134,8 +145,6 @@ func (pr *PatientRepository) CreatePatient(patient *entity.Patient) error {
 		patient.MiddleName,
 		patient.BirthDate,
 		patient.Gender,
-		patient.PhoneNumber,
-		patient.Email,
 		"admin")
 	if err != nil {
 		return fmt.Errorf("error creating patient: %w", err)
