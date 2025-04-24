@@ -1,6 +1,8 @@
 package service
 
 import (
+	"log/slog"
+
 	"github.com/google/uuid"
 	"github.com/his-vita/patients-service/internal/dto"
 	"github.com/his-vita/patients-service/internal/entity"
@@ -17,12 +19,14 @@ type PatientRepository interface {
 }
 
 type PatientService struct {
+	log               *slog.Logger
 	patientRepository PatientRepository
 	patientMapper     *mapper.PatientMapper
 }
 
-func NewPatientService(r PatientRepository, patientMapper *mapper.PatientMapper) *PatientService {
+func NewPatientService(log *slog.Logger, r PatientRepository, patientMapper *mapper.PatientMapper) *PatientService {
 	return &PatientService{
+		log:               log,
 		patientRepository: r,
 		patientMapper:     patientMapper,
 	}

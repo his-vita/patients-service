@@ -1,6 +1,8 @@
 package service
 
 import (
+	"log/slog"
+
 	"github.com/google/uuid"
 	"github.com/his-vita/patients-service/internal/entity"
 )
@@ -13,11 +15,13 @@ type ContactRepository interface {
 }
 
 type ContactService struct {
+	log               *slog.Logger
 	contactRepository ContactRepository
 }
 
-func NewContactService(r ContactRepository) *ContactService {
+func NewContactService(log *slog.Logger, r ContactRepository) *ContactService {
 	return &ContactService{
+		log:               log,
 		contactRepository: r,
 	}
 }

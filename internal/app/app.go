@@ -28,11 +28,11 @@ func Run(cfg *config.Config) {
 
 	patientMapper := mapper.NewPatientMapper()
 	patientRepository := repository.NewPatientRepository(pgContext, sqlStore)
-	patientService := service.NewPatientService(patientRepository, patientMapper)
-	patientController := v1.NewPatientController(log, patientService)
+	patientService := service.NewPatientService(log, patientRepository, patientMapper)
+	patientController := v1.NewPatientController(patientService)
 
 	contactRepository := repository.NewContactRepository(pgContext, sqlStore)
-	contactService := service.NewContactService(contactRepository)
+	contactService := service.NewContactService(log, contactRepository)
 	contactController := v1.NewContactController(contactService)
 
 	httpServer := httpserver.New(cfg.Env, &cfg.Server)

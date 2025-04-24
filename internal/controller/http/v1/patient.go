@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -21,13 +20,11 @@ type PatientService interface {
 }
 
 type PatientController struct {
-	log            *slog.Logger
 	patientService PatientService
 }
 
-func NewPatientController(log *slog.Logger, s PatientService) *PatientController {
+func NewPatientController(s PatientService) *PatientController {
 	return &PatientController{
-		log:            log,
 		patientService: s,
 	}
 }
@@ -78,13 +75,11 @@ func (pc *PatientController) UpdatePatient(c *gin.Context) {
 	var patient entity.Patient
 
 	if err := c.ShouldBindJSON(&patient); err != nil {
-		pc.log.Error("UpdatePatient", "ShouldBindJSON", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})
 		return
 	}
 
 	if err := pc.patientService.UpdatePatient(&patient); err != nil {
-		pc.log.Error("UpdatePatient", "PatientService", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -96,13 +91,11 @@ func (pc *PatientController) CreatePatient(c *gin.Context) {
 	var patient entity.Patient
 
 	if err := c.ShouldBindJSON(&patient); err != nil {
-		pc.log.Error("CreatePatient", "ShouldBindJSON", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})
 		return
 	}
 
 	if err := pc.patientService.CreatePatient(&patient); err != nil {
-		pc.log.Error("CreatePatient", "PatientService", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
