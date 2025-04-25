@@ -7,6 +7,7 @@ import (
 
 	"github.com/his-vita/patients-service/internal/config"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -51,4 +52,26 @@ func (p *PgContext) Close() {
 	if p.Pool != nil {
 		p.Pool.Close()
 	}
+}
+
+func (pg *PgContext) BeginTransaction() (pgx.Tx, error) {
+	tx, err := pg.Pool.Begin(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	return tx, nil
+}
+
+func (pg *PgContext) CommitTransaction(tx pgx.Tx) error {
+	if err := tx.Commit(context.Background()); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
+}
+
+func (pg *PgContext) RollbackTransaction(tx pgx.Tx) error {
+	if err := tx.Rollback(context.Background()); err != nil {
+		return fmt.Errorf("failed to rollback transaction: %w", err)
+	}
+	return nil
 }

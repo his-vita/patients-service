@@ -18,17 +18,21 @@ type PatientRepository interface {
 	UnMarkPatientAsDeleted(id *uuid.UUID) error
 }
 
+type PatientTransactionRepository interface {
+	CreatePatient(patient *entity.Patient) error
+}
+
 type PatientService struct {
 	log               *slog.Logger
 	patientRepository PatientRepository
-	patientMapper     *mapper.PatientMapper
+	ptr               PatientTransactionRepository
 }
 
-func NewPatientService(log *slog.Logger, r PatientRepository, patientMapper *mapper.PatientMapper) *PatientService {
+func NewPatientService(log *slog.Logger, r PatientRepository, ptr PatientTransactionRepository) *PatientService {
 	return &PatientService{
 		log:               log,
 		patientRepository: r,
-		patientMapper:     patientMapper,
+		ptr:               ptr,
 	}
 }
 
@@ -41,16 +45,16 @@ func (ps *PatientService) GetPatient(id *uuid.UUID) (*entity.Patient, error) {
 	return patient, nil
 }
 
-func (ps *PatientService) GetPatients(limit int, offset int) (*[]dto.PatientDTO, error) {
+func (ps *PatientService) GetPatients(limit int, offset int) (*[]dto.Patient, error) {
 	patients, err := ps.patientRepository.GetPatients(limit, offset)
 	if err != nil {
 		return nil, err
 	}
 
-	patientDTOs := make([]dto.PatientDTO, len(*patients))
+	patientDTOs := make([]dto.Patient, len(*patients))
 
 	for i, patient := range *patients {
-		patientDTO := ps.patientMapper.ToDTO(&patient)
+		patientDTO := mapper.PatientToDTO(&patient)
 		patientDTOs[i] = *patientDTO
 	}
 
@@ -66,13 +70,20 @@ func (ps *PatientService) UpdatePatient(patient *entity.Patient) error {
 	return nil
 }
 
-func (ps *PatientService) CreatePatient(patient *entity.Patient) error {
-	err := ps.patientRepository.CreatePatient(patient)
+func (ps *PatientService) CreatePatient(patientDTO *dto.Patient) error {
+	patient := mapper.PatientToEntity(patientDTO)
+	err := ps.ptr.CreatePatient(patient)
 	if err != nil {
 		return err
 	}
 
 	return nil
+	// err := ps.patientRepository.CreatePatient(patient)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// return nil
 }
 
 func (ps *PatientService) MarkPatientAsDeleted(id *uuid.UUID) error {

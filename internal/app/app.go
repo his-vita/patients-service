@@ -8,8 +8,8 @@ import (
 	"github.com/his-vita/patients-service/internal/infrastructure/httpserver"
 	"github.com/his-vita/patients-service/internal/infrastructure/logger"
 	"github.com/his-vita/patients-service/internal/infrastructure/sqlstore"
-	"github.com/his-vita/patients-service/internal/mapper"
 	"github.com/his-vita/patients-service/internal/repository"
+	"github.com/his-vita/patients-service/internal/repository/transaction"
 	"github.com/his-vita/patients-service/internal/service"
 )
 
@@ -26,9 +26,10 @@ func Run(cfg *config.Config) {
 		panic(err)
 	}
 
-	patientMapper := mapper.NewPatientMapper()
+	patientTransactionRepository := transaction.NewPatientTransactionRepository(pgContext, sqlStore)
+
 	patientRepository := repository.NewPatientRepository(pgContext, sqlStore)
-	patientService := service.NewPatientService(log, patientRepository, patientMapper)
+	patientService := service.NewPatientService(log, patientRepository, patientTransactionRepository)
 	patientController := v1.NewPatientController(patientService)
 
 	contactRepository := repository.NewContactRepository(pgContext, sqlStore)
