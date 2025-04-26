@@ -4,7 +4,9 @@ import (
 	"log/slog"
 
 	"github.com/google/uuid"
+	"github.com/his-vita/patients-service/internal/dto"
 	"github.com/his-vita/patients-service/internal/entity"
+	"github.com/his-vita/patients-service/internal/mapper"
 )
 
 type ContactRepository interface {
@@ -44,7 +46,9 @@ func (cs *ContactService) UpdateContact(contact *entity.Contact) error {
 	return nil
 }
 
-func (cs *ContactService) CreateContact(contact *entity.Contact) error {
+func (cs *ContactService) CreateContact(contactDTO *dto.Contact) error {
+	contact := mapper.ContactToEntity(contactDTO)
+
 	err := cs.contactRepository.CreateContact(contact)
 	if err != nil {
 		return err

@@ -8,4 +8,5 @@ INSERT INTO
         created_ts,
         created_by
     )
-VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6);
+VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6)
+RETURNING id;

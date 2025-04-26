@@ -4,19 +4,19 @@ import (
 	"github.com/his-vita/patients-service/internal/config"
 	"github.com/his-vita/patients-service/internal/controller/http/routes"
 	v1 "github.com/his-vita/patients-service/internal/controller/http/v1"
-	"github.com/his-vita/patients-service/internal/infrastructure/database"
+	"github.com/his-vita/patients-service/internal/infrastructure/database/postgres"
 	"github.com/his-vita/patients-service/internal/infrastructure/httpserver"
 	"github.com/his-vita/patients-service/internal/infrastructure/logger"
 	"github.com/his-vita/patients-service/internal/infrastructure/sqlstore"
 	"github.com/his-vita/patients-service/internal/repository"
-	"github.com/his-vita/patients-service/internal/repository/transaction"
 	"github.com/his-vita/patients-service/internal/service"
+	"github.com/his-vita/patients-service/internal/transaction"
 )
 
 func Run(cfg *config.Config) {
 	log := logger.New(cfg.Env)
 
-	pgContext, err := database.NewPostgresConnect(&cfg.Db)
+	pgContext, err := postgres.NewPostgresConnect(&cfg.Db)
 	if err != nil {
 		panic(err)
 	}
@@ -26,14 +26,17 @@ func Run(cfg *config.Config) {
 		panic(err)
 	}
 
-	patientTransactionRepository := transaction.NewPatientTransactionRepository(pgContext, sqlStore)
+	txManager := postgres.NewTransactionManager(pgContext)
 
 	patientRepository := repository.NewPatientRepository(pgContext, sqlStore)
-	patientService := service.NewPatientService(log, patientRepository, patientTransactionRepository)
-	patientController := v1.NewPatientController(patientService)
-
 	contactRepository := repository.NewContactRepository(pgContext, sqlStore)
+
+	patientService := service.NewPatientService(log, patientRepository)
 	contactService := service.NewContactService(log, contactRepository)
+
+	patientTransaction := transaction.NewPatientTransaction(patientService, contactService, txManager)
+
+	patientController := v1.NewPatientController(patientService, patientTransaction)
 	contactController := v1.NewContactController(contactService)
 
 	httpServer := httpserver.New(cfg.Env, &cfg.Server)

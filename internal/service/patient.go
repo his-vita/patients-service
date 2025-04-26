@@ -13,7 +13,7 @@ type PatientRepository interface {
 	GetPatient(id *uuid.UUID) (*entity.Patient, error)
 	GetPatients(limit int, offset int) (*[]entity.Patient, error)
 	UpdatePatient(patient *entity.Patient) error
-	CreatePatient(patient *entity.Patient) error
+	CreatePatient(patient *entity.Patient) (*uuid.UUID, error)
 	MarkPatientAsDeleted(id *uuid.UUID) error
 	UnMarkPatientAsDeleted(id *uuid.UUID) error
 }
@@ -25,14 +25,12 @@ type PatientTransactionRepository interface {
 type PatientService struct {
 	log               *slog.Logger
 	patientRepository PatientRepository
-	ptr               PatientTransactionRepository
 }
 
-func NewPatientService(log *slog.Logger, r PatientRepository, ptr PatientTransactionRepository) *PatientService {
+func NewPatientService(log *slog.Logger, r PatientRepository) *PatientService {
 	return &PatientService{
 		log:               log,
 		patientRepository: r,
-		ptr:               ptr,
 	}
 }
 
@@ -70,20 +68,15 @@ func (ps *PatientService) UpdatePatient(patient *entity.Patient) error {
 	return nil
 }
 
-func (ps *PatientService) CreatePatient(patientDTO *dto.Patient) error {
+func (ps *PatientService) CreatePatient(patientDTO *dto.Patient) (*uuid.UUID, error) {
 	patient := mapper.PatientToEntity(patientDTO)
-	err := ps.ptr.CreatePatient(patient)
+
+	id, err := ps.patientRepository.CreatePatient(patient)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
-	// err := ps.patientRepository.CreatePatient(patient)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// return nil
+	return id, nil
 }
 
 func (ps *PatientService) MarkPatientAsDeleted(id *uuid.UUID) error {

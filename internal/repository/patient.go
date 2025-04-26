@@ -6,17 +6,17 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/his-vita/patients-service/internal/entity"
-	"github.com/his-vita/patients-service/internal/infrastructure/database"
+	"github.com/his-vita/patients-service/internal/infrastructure/database/postgres"
 	"github.com/his-vita/patients-service/internal/infrastructure/sqlstore"
 	"github.com/jackc/pgx/v5"
 )
 
 type PatientRepository struct {
-	pgContext *database.PgContext
+	pgContext *postgres.PgContext
 	sqlStore  *sqlstore.SqlStore
 }
 
-func NewPatientRepository(pgContext *database.PgContext, sqlStore *sqlstore.SqlStore) *PatientRepository {
+func NewPatientRepository(pgContext *postgres.PgContext, sqlStore *sqlstore.SqlStore) *PatientRepository {
 	return &PatientRepository{
 		pgContext: pgContext,
 		sqlStore:  sqlStore,
@@ -130,27 +130,29 @@ func (pr *PatientRepository) UpdatePatient(patient *entity.Patient) error {
 	return nil
 }
 
-func (pr *PatientRepository) CreatePatient(patient *entity.Patient) error {
+func (pr *PatientRepository) CreatePatient(patient *entity.Patient) (*uuid.UUID, error) {
 	query, err := pr.sqlStore.GetQuery("insert_patient.sql")
 	if err != nil {
-		return fmt.Errorf("SQL query insert_patient.sql not found")
+		return nil, fmt.Errorf("SQL query insert_patient.sql not found")
 	}
 
 	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
 
-	_, err = pr.pgContext.Pool.Exec(ctx, query,
+	var patientID uuid.UUID
+
+	err = pr.pgContext.Pool.QueryRow(ctx, query,
 		patient.FirstName,
 		patient.LastName,
 		patient.MiddleName,
 		patient.BirthDate,
 		patient.Gender,
-		"admin")
+		"admin").Scan(&patientID)
 	if err != nil {
-		return fmt.Errorf("error creating patient: %w", err)
+		return nil, fmt.Errorf("error creating patient: %w", err)
 	}
 
-	return nil
+	return &patientID, nil
 }
 
 func (pr *PatientRepository) MarkPatientAsDeleted(id *uuid.UUID) error {

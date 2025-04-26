@@ -5,17 +5,17 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/his-vita/patients-service/internal/entity"
-	"github.com/his-vita/patients-service/internal/infrastructure/database"
+	"github.com/his-vita/patients-service/internal/infrastructure/database/postgres"
 	"github.com/his-vita/patients-service/internal/infrastructure/sqlstore"
 	"github.com/jackc/pgx/v5"
 )
 
 type ContactRepository struct {
-	pgContext *database.PgContext
+	pgContext *postgres.PgContext
 	sqlStore  *sqlstore.SqlStore
 }
 
-func NewContactRepository(pgContext *database.PgContext, sqlStore *sqlstore.SqlStore) *ContactRepository {
+func NewContactRepository(pgContext *postgres.PgContext, sqlStore *sqlstore.SqlStore) *ContactRepository {
 	return &ContactRepository{
 		pgContext: pgContext,
 		sqlStore:  sqlStore,

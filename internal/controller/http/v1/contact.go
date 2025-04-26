@@ -5,13 +5,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/his-vita/patients-service/internal/dto"
 	"github.com/his-vita/patients-service/internal/entity"
 )
 
 type ContactService interface {
 	GetContactsByPatientId(id *uuid.UUID) (*[]entity.Contact, error)
 	UpdateContact(contact *entity.Contact) error
-	CreateContact(contact *entity.Contact) error
+	CreateContact(contact *dto.Contact) error
 	DeleteContact(id *uuid.UUID) error
 }
 
@@ -59,7 +60,7 @@ func (cc *ContactController) UpdateContact(c *gin.Context) {
 }
 
 func (cc *ContactController) CreateContact(c *gin.Context) {
-	var contact entity.Contact
+	var contact dto.Contact
 
 	if err := c.ShouldBindJSON(&contact); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})

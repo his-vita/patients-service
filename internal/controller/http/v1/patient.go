@@ -14,18 +14,24 @@ type PatientService interface {
 	GetPatient(id *uuid.UUID) (*entity.Patient, error)
 	GetPatients(limit int, offset int) (*[]dto.Patient, error)
 	UpdatePatient(patient *entity.Patient) error
-	CreatePatient(patient *dto.Patient) error
+	CreatePatient(patient *dto.Patient) (*uuid.UUID, error)
 	MarkPatientAsDeleted(id *uuid.UUID) error
 	UnMarkPatientAsDeleted(id *uuid.UUID) error
 }
 
-type PatientController struct {
-	patientService PatientService
+type PatientTransaction interface {
+	CreatePatientTransaction(patientDTO *dto.PatientFull) error
 }
 
-func NewPatientController(s PatientService) *PatientController {
+type PatientController struct {
+	patientService     PatientService
+	patientTransaction PatientTransaction
+}
+
+func NewPatientController(s PatientService, pt PatientTransaction) *PatientController {
 	return &PatientController{
-		patientService: s,
+		patientService:     s,
+		patientTransaction: pt,
 	}
 }
 
@@ -95,12 +101,29 @@ func (pc *PatientController) CreatePatient(c *gin.Context) {
 		return
 	}
 
-	if err := pc.patientService.CreatePatient(&patient); err != nil {
+	_, err := pc.patientService.CreatePatient(&patient)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Patient created successfully"})
+}
+
+func (pc *PatientController) CreatePatientTransaction(c *gin.Context) {
+	var patient dto.PatientFull
+
+	if err := c.ShouldBindJSON(&patient); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})
+		return
+	}
+
+	if err := pc.patientTransaction.CreatePatientTransaction(&patient); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Patient created successfully with transaction"})
 }
 
 func (pc *PatientController) MarkPatientAsDeleted(c *gin.Context) {
