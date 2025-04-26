@@ -28,7 +28,7 @@ func PatientToDTO(entity *entity.Patient) *dto.Patient {
 func PatientDetailsToDTO(entity *entity.Patient) *dto.PatientDetails {
 	return &dto.PatientDetails{
 		Patient: PatientToDTO(entity),
-		Contact: ContactToDTO(entity.Contact),
+		Contact: ContactToDTO(&entity.Contact),
 	}
 }
 

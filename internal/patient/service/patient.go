@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"log/slog"
 
 	"github.com/google/uuid"
@@ -13,7 +14,7 @@ type PatientRepository interface {
 	GetPatient(id *uuid.UUID) (*entity.Patient, error)
 	GetPatients(limit int, offset int) (*[]entity.Patient, error)
 	UpdatePatient(patient *entity.Patient) error
-	CreatePatient(patient *entity.Patient) (*uuid.UUID, error)
+	CreatePatient(ctx context.Context, patient *entity.Patient) (*uuid.UUID, error)
 	MarkPatientAsDeleted(id *uuid.UUID) error
 	UnMarkPatientAsDeleted(id *uuid.UUID) error
 }
@@ -27,7 +28,7 @@ type PatientService struct {
 	patientRepository PatientRepository
 }
 
-func NewPatientService(log *slog.Logger, r PatientRepository) *PatientService {
+func New(log *slog.Logger, r PatientRepository) *PatientService {
 	return &PatientService{
 		log:               log,
 		patientRepository: r,
@@ -63,10 +64,10 @@ func (ps *PatientService) UpdatePatient(patient *entity.Patient) error {
 	return nil
 }
 
-func (ps *PatientService) CreatePatient(patientDTO *dto.Patient) (*uuid.UUID, error) {
+func (ps *PatientService) CreatePatient(ctx context.Context, patientDTO *dto.Patient) (*uuid.UUID, error) {
 	patient := mapper.PatientToEntity(patientDTO)
 
-	id, err := ps.patientRepository.CreatePatient(patient)
+	id, err := ps.patientRepository.CreatePatient(ctx, patient)
 	if err != nil {
 		return nil, err
 	}

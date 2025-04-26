@@ -1,13 +1,14 @@
 package repository
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/his-vita/patients-service/internal/entity"
-	"github.com/his-vita/patients-service/internal/infrastructure/database/postgres"
-	"github.com/his-vita/patients-service/internal/infrastructure/sqlstore"
+	"github.com/his-vita/patients-service/pkg/database/postgres"
+	"github.com/his-vita/patients-service/pkg/sqlstore"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -16,7 +17,7 @@ type PatientRepository struct {
 	sqlStore  *sqlstore.SqlStore
 }
 
-func NewPatientRepository(pgContext *postgres.PgContext, sqlStore *sqlstore.SqlStore) *PatientRepository {
+func New(pgContext *postgres.PgContext, sqlStore *sqlstore.SqlStore) *PatientRepository {
 	return &PatientRepository{
 		pgContext: pgContext,
 		sqlStore:  sqlStore,
@@ -46,8 +47,7 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*entity.Patient, error) 
 		&patient.UpdatedBy,
 		&patient.DeletedTS,
 		&patient.DeletedBy,
-		&patient.Version,
-	)
+		&patient.Version)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("patient with id %s not found", id)
@@ -77,7 +77,6 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) (*[]entity.Patie
 
 	for rows.Next() {
 		var patient entity.Patient
-		patient.Contact = &entity.Contact{}
 
 		err := rows.Scan(
 			&patient.ID,
@@ -131,26 +130,40 @@ func (pr *PatientRepository) UpdatePatient(patient *entity.Patient) error {
 	return nil
 }
 
-func (pr *PatientRepository) CreatePatient(patient *entity.Patient) (*uuid.UUID, error) {
+func (pr *PatientRepository) CreatePatient(ctx context.Context, patient *entity.Patient) (*uuid.UUID, error) {
 	query, err := pr.sqlStore.GetQuery("insert_patient.sql")
 	if err != nil {
 		return nil, fmt.Errorf("SQL query insert_patient.sql not found")
 	}
 
-	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
-	defer cancel()
-
 	var patientID uuid.UUID
 
-	err = pr.pgContext.Pool.QueryRow(ctx, query,
-		patient.FirstName,
-		patient.LastName,
-		patient.MiddleName,
-		patient.BirthDate,
-		patient.Gender,
-		"admin").Scan(&patientID)
-	if err != nil {
-		return nil, fmt.Errorf("error creating patient: %w", err)
+	tx, ok := ctx.Value("transaction").(pgx.Tx)
+	ctxTimeout, cancel := pr.pgContext.DefaultTimeoutCtx()
+	defer cancel()
+
+	if !ok {
+		err := pr.pgContext.Pool.QueryRow(ctxTimeout, query,
+			patient.FirstName,
+			patient.LastName,
+			patient.MiddleName,
+			patient.BirthDate,
+			patient.Gender,
+			"admin").Scan(&patientID)
+		if err != nil {
+			return nil, fmt.Errorf("error creating patient: %w", err)
+		}
+	} else {
+		err := tx.QueryRow(ctxTimeout, query,
+			patient.FirstName,
+			patient.LastName,
+			patient.MiddleName,
+			patient.BirthDate,
+			patient.Gender,
+			"admin").Scan(&patientID)
+		if err != nil {
+			return nil, fmt.Errorf("error creating patient: %w", err)
+		}
 	}
 
 	return &patientID, nil

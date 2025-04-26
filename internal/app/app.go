@@ -2,15 +2,17 @@ package app
 
 import (
 	"github.com/his-vita/patients-service/internal/config"
+	contactRepo "github.com/his-vita/patients-service/internal/contact/repository"
+	contactServ "github.com/his-vita/patients-service/internal/contact/service"
 	"github.com/his-vita/patients-service/internal/controller/http/routes"
 	v1 "github.com/his-vita/patients-service/internal/controller/http/v1"
-	"github.com/his-vita/patients-service/internal/infrastructure/database/postgres"
-	"github.com/his-vita/patients-service/internal/infrastructure/httpserver"
-	"github.com/his-vita/patients-service/internal/infrastructure/logger"
-	"github.com/his-vita/patients-service/internal/infrastructure/sqlstore"
-	"github.com/his-vita/patients-service/internal/repository"
-	"github.com/his-vita/patients-service/internal/service"
-	"github.com/his-vita/patients-service/internal/transaction"
+	patientRepo "github.com/his-vita/patients-service/internal/patient/repository"
+	patientServ "github.com/his-vita/patients-service/internal/patient/service"
+	patientTrans "github.com/his-vita/patients-service/internal/patient/transaction"
+	"github.com/his-vita/patients-service/pkg/database/postgres"
+	"github.com/his-vita/patients-service/pkg/httpserver"
+	"github.com/his-vita/patients-service/pkg/logger"
+	"github.com/his-vita/patients-service/pkg/sqlstore"
 )
 
 func Run(cfg *config.Config) {
@@ -28,13 +30,13 @@ func Run(cfg *config.Config) {
 
 	txManager := postgres.NewTransactionManager(pgContext)
 
-	patientRepository := repository.NewPatientRepository(pgContext, sqlStore)
-	contactRepository := repository.NewContactRepository(pgContext, sqlStore)
+	patientRepository := patientRepo.New(pgContext, sqlStore)
+	contactRepository := contactRepo.New(pgContext, sqlStore)
 
-	patientService := service.NewPatientService(log, patientRepository)
-	contactService := service.NewContactService(log, contactRepository)
+	patientService := patientServ.New(log, patientRepository)
+	contactService := contactServ.New(log, contactRepository)
 
-	patientTransaction := transaction.NewPatientTransaction(patientService, contactService, txManager)
+	patientTransaction := patientTrans.New(patientService, contactService, txManager)
 
 	patientController := v1.NewPatientController(patientService, patientTransaction)
 	contactController := v1.NewContactController(contactService)

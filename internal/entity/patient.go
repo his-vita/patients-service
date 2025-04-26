@@ -19,5 +19,5 @@ type Patient struct {
 	DeletedTS  *civil.DateTime `json:"deleted_ts"`
 	DeletedBy  *string         `json:"deleted_by"`
 	Version    int             `json:"version"`
-	Contact    *Contact        `json:"contact"`
+	Contact    Contact         `json:"contact"`
 }

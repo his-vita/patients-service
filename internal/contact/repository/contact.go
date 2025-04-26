@@ -1,12 +1,13 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/his-vita/patients-service/internal/entity"
-	"github.com/his-vita/patients-service/internal/infrastructure/database/postgres"
-	"github.com/his-vita/patients-service/internal/infrastructure/sqlstore"
+	"github.com/his-vita/patients-service/pkg/database/postgres"
+	"github.com/his-vita/patients-service/pkg/sqlstore"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -15,7 +16,7 @@ type ContactRepository struct {
 	sqlStore  *sqlstore.SqlStore
 }
 
-func NewContactRepository(pgContext *postgres.PgContext, sqlStore *sqlstore.SqlStore) *ContactRepository {
+func New(pgContext *postgres.PgContext, sqlStore *sqlstore.SqlStore) *ContactRepository {
 	return &ContactRepository{
 		pgContext: pgContext,
 		sqlStore:  sqlStore,
@@ -66,22 +67,35 @@ func (cr *ContactRepository) UpdateContact(contact *entity.Contact) error {
 	return nil
 }
 
-func (cr *ContactRepository) CreateContact(contact *entity.Contact) error {
+func (cr *ContactRepository) CreateContact(ctx context.Context, contact *entity.Contact) error {
 	query, err := cr.sqlStore.GetQuery("insert_contact.sql")
 	if err != nil {
 		return fmt.Errorf("SQL query insert_contact.sql not found")
 	}
 
-	ctx, cancel := cr.pgContext.DefaultTimeoutCtx()
+	tx, ok := ctx.Value("transaction").(pgx.Tx)
+
+	ctxTimeout, cancel := cr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
 
-	_, err = cr.pgContext.Pool.Exec(ctx, query,
-		contact.PatientID,
-		contact.PhoneNumber,
-		contact.WorkPhoneNumber,
-		contact.Email)
-	if err != nil {
-		return fmt.Errorf("error creating contact: %w", err)
+	if !ok {
+		_, err := cr.pgContext.Pool.Exec(ctxTimeout, query,
+			contact.PatientID,
+			contact.PhoneNumber,
+			contact.WorkPhoneNumber,
+			contact.Email)
+		if err != nil {
+			return fmt.Errorf("error creating contact: %w", err)
+		}
+	} else {
+		_, err = tx.Exec(ctxTimeout, query,
+			contact.PatientID,
+			contact.PhoneNumber,
+			contact.WorkPhoneNumber,
+			contact.Email)
+		if err != nil {
+			return fmt.Errorf("error creating contact: %w", err)
+		}
 	}
 
 	return nil

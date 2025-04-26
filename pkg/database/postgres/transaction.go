@@ -17,23 +17,37 @@ func NewTransactionManager(pgContext *PgContext) *TransactionManager {
 	}
 }
 
-func (tm *TransactionManager) BeginTransaction() (pgx.Tx, error) {
+func (tm *TransactionManager) BeginTransaction(ctx context.Context) (context.Context, error) {
 	tx, err := tm.pgContext.Pool.Begin(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	return tx, nil
+
+	ctx = context.WithValue(ctx, "transaction", tx)
+
+	fmt.Println(ctx)
+
+	return ctx, nil
 }
 
-func (tm *TransactionManager) CommitTransaction(tx pgx.Tx) error {
+func (tm *TransactionManager) CommitTransaction(ctx context.Context) error {
+	tx, ok := ctx.Value("transaction").(pgx.Tx)
+	if !ok {
+		return fmt.Errorf("transaction not found in context")
+	}
+
 	if err := tx.Commit(context.Background()); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
+
 	return nil
 }
 
-func (tm *TransactionManager) RollbackTransaction(tx pgx.Tx) error {
-	fmt.Println("rollback1")
+func (tm *TransactionManager) RollbackTransaction(ctx context.Context) error {
+	tx, ok := ctx.Value("transaction").(pgx.Tx)
+	if !ok {
+		return fmt.Errorf("transaction not found in context")
+	}
 
 	if tx == nil {
 		return fmt.Errorf("transaction is already nil, can't rollback")
@@ -45,6 +59,5 @@ func (tm *TransactionManager) RollbackTransaction(tx pgx.Tx) error {
 		return fmt.Errorf("failed to rollback transaction: %w", err)
 	}
 
-	fmt.Println("rollback2")
 	return nil
 }

@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
@@ -14,7 +15,7 @@ type PatientService interface {
 	GetPatient(id *uuid.UUID) (*entity.Patient, error)
 	GetPatients(limit int, offset int) (*[]dto.PatientDetails, error)
 	UpdatePatient(patient *entity.Patient) error
-	CreatePatient(patient *dto.Patient) (*uuid.UUID, error)
+	CreatePatient(ctx context.Context, patient *dto.Patient) (*uuid.UUID, error)
 	MarkPatientAsDeleted(id *uuid.UUID) error
 	UnMarkPatientAsDeleted(id *uuid.UUID) error
 }
@@ -101,7 +102,7 @@ func (pc *PatientController) CreatePatient(c *gin.Context) {
 		return
 	}
 
-	_, err := pc.patientService.CreatePatient(&patient)
+	_, err := pc.patientService.CreatePatient(context.Background(), &patient)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

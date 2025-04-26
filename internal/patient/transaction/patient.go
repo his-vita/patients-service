@@ -1,19 +1,20 @@
 package transaction
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/his-vita/patients-service/internal/dto"
-	"github.com/his-vita/patients-service/internal/infrastructure/database"
+	"github.com/his-vita/patients-service/pkg/database"
 )
 
 type PatientService interface {
-	CreatePatient(patientDTO *dto.Patient) (*uuid.UUID, error)
+	CreatePatient(ctx context.Context, patientDTO *dto.Patient) (*uuid.UUID, error)
 }
 
 type ContactService interface {
-	CreateContact(contactDTO *dto.Contact) error
+	CreateContact(ctx context.Context, contactDTO *dto.Contact) error
 }
 
 type PatientTransaction struct {
@@ -22,7 +23,7 @@ type PatientTransaction struct {
 	txManager      database.TransactionManager
 }
 
-func NewPatientTransaction(ps PatientService, cs ContactService, tx database.TransactionManager) *PatientTransaction {
+func New(ps PatientService, cs ContactService, tx database.TransactionManager) *PatientTransaction {
 	return &PatientTransaction{
 		patientService: ps,
 		contactService: cs,
@@ -31,20 +32,23 @@ func NewPatientTransaction(ps PatientService, cs ContactService, tx database.Tra
 }
 
 func (pt *PatientTransaction) CreatePatientTransaction(patientDTO *dto.PatientDetails) error {
-	tx, err := pt.txManager.BeginTransaction()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	tx, err := pt.txManager.BeginTransaction(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer pt.txManager.RollbackTransaction(tx)
 
-	id, err := pt.patientService.CreatePatient(patientDTO.Patient)
+	id, err := pt.patientService.CreatePatient(tx, patientDTO.Patient)
 	if err != nil {
 		return fmt.Errorf("failed to save patient: %w", err)
 	}
 
-	//patientDTO.Contact.PatientId = id
+	patientDTO.Contact.PatientId = id
 
-	if err := pt.contactService.CreateContact(patientDTO.Contact); err != nil {
+	if err := pt.contactService.CreateContact(tx, patientDTO.Contact); err != nil {
 		return fmt.Errorf("failed to save contact: %w", err)
 	}
 
