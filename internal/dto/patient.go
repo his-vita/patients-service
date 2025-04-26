@@ -6,7 +6,7 @@ import (
 )
 
 type Patient struct {
-	ID         *uuid.UUID `json:"id"`
+	ID         *uuid.UUID `json:"id,omitempty"`
 	FirstName  string     `json:"first_name"`
 	LastName   string     `json:"last_name"`
 	MiddleName *string    `json:"middle_name"`
@@ -14,17 +14,7 @@ type Patient struct {
 	Gender     *bool      `json:"gender"`
 }
 
-type PatientFull struct {
+type PatientDetails struct {
 	Patient *Patient `json:"patient"`
 	Contact *Contact `json:"contact"`
-}
-
-type PatientResponse struct {
-	ID         *uuid.UUID
-	FirstName  string
-	LastName   string
-	MiddleName *string
-	BirthDate  civil.Date
-	Gender     *bool
-	Contact    *Contact
 }

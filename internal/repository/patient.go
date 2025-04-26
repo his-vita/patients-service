@@ -86,9 +86,10 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) (*[]entity.Patie
 			&patient.MiddleName,
 			&patient.BirthDate,
 			&patient.Gender,
+			&patient.Contact.ID,
 			&patient.Contact.PhoneNumber,
-			&patient.Contact.Email,
-		)
+			&patient.Contact.WorkPhoneNumber,
+			&patient.Contact.Email)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}

@@ -33,8 +33,18 @@ func (tm *TransactionManager) CommitTransaction(tx pgx.Tx) error {
 }
 
 func (tm *TransactionManager) RollbackTransaction(tx pgx.Tx) error {
-	if err := tx.Rollback(context.Background()); err != nil {
+	fmt.Println("rollback1")
+
+	if tx == nil {
+		return fmt.Errorf("transaction is already nil, can't rollback")
+	}
+
+	err := tx.Rollback(context.Background())
+	if err != nil {
+		fmt.Printf("error during rollback: %v\n", err)
 		return fmt.Errorf("failed to rollback transaction: %w", err)
 	}
+
+	fmt.Println("rollback2")
 	return nil
 }

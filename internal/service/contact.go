@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/google/uuid"
@@ -48,6 +49,9 @@ func (cs *ContactService) UpdateContact(contact *entity.Contact) error {
 
 func (cs *ContactService) CreateContact(contactDTO *dto.Contact) error {
 	contact := mapper.ContactToEntity(contactDTO)
+	if contact == nil {
+		return fmt.Errorf("error on contact mapping")
+	}
 
 	err := cs.contactRepository.CreateContact(contact)
 	if err != nil {

@@ -43,20 +43,15 @@ func (ps *PatientService) GetPatient(id *uuid.UUID) (*entity.Patient, error) {
 	return patient, nil
 }
 
-func (ps *PatientService) GetPatients(limit int, offset int) (*[]dto.Patient, error) {
+func (ps *PatientService) GetPatients(limit int, offset int) (*[]dto.PatientDetails, error) {
 	patients, err := ps.patientRepository.GetPatients(limit, offset)
 	if err != nil {
 		return nil, err
 	}
 
-	patientDTOs := make([]dto.Patient, len(*patients))
+	patientDTOs := mapper.PatientDetailsDTOs(patients)
 
-	for i, patient := range *patients {
-		patientDTO := mapper.PatientToDTO(&patient)
-		patientDTOs[i] = *patientDTO
-	}
-
-	return &patientDTOs, nil
+	return patientDTOs, nil
 }
 
 func (ps *PatientService) UpdatePatient(patient *entity.Patient) error {

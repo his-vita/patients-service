@@ -7,11 +7,11 @@ import (
 
 func ContactToEntity(dto *dto.Contact) *entity.Contact {
 	return &entity.Contact{
-		ID:          dto.ID,
-		PatientID:   dto.PatientId,
-		PhoneNumber: dto.PhoneNumber,
-		Email:       dto.Email,
-		Main:        dto.Main,
+		ID:              dto.ID,
+		PatientID:       dto.PatientId,
+		PhoneNumber:     dto.PhoneNumber,
+		WorkPhoneNumber: dto.WorkPhoneNumber,
+		Email:           dto.Email,
 	}
 }
 

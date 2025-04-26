@@ -24,3 +24,21 @@ func PatientToDTO(entity *entity.Patient) *dto.Patient {
 		Gender:     entity.Gender,
 	}
 }
+
+func PatientDetailsToDTO(entity *entity.Patient) *dto.PatientDetails {
+	return &dto.PatientDetails{
+		Patient: PatientToDTO(entity),
+		Contact: ContactToDTO(entity.Contact),
+	}
+}
+
+func PatientDetailsDTOs(entities *[]entity.Patient) *[]dto.PatientDetails {
+	patientDTOs := make([]dto.PatientDetails, len(*entities))
+
+	for i, patient := range *entities {
+		patientDTO := PatientDetailsToDTO(&patient)
+		patientDTOs[i] = *patientDTO
+	}
+
+	return &patientDTOs
+}

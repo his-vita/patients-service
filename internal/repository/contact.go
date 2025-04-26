@@ -57,8 +57,8 @@ func (cr *ContactRepository) UpdateContact(contact *entity.Contact) error {
 	_, err = cr.pgContext.Pool.Exec(ctx, query,
 		contact.ID,
 		contact.PhoneNumber,
-		contact.Email,
-		contact.Main)
+		contact.WorkPhoneNumber,
+		contact.Email)
 	if err != nil {
 		return fmt.Errorf("error update contact: %w", err)
 	}
@@ -78,8 +78,8 @@ func (cr *ContactRepository) CreateContact(contact *entity.Contact) error {
 	_, err = cr.pgContext.Pool.Exec(ctx, query,
 		contact.PatientID,
 		contact.PhoneNumber,
-		contact.Email,
-		contact.Main)
+		contact.WorkPhoneNumber,
+		contact.Email)
 	if err != nil {
 		return fmt.Errorf("error creating contact: %w", err)
 	}

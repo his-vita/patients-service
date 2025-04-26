@@ -30,7 +30,7 @@ func NewPatientTransaction(ps PatientService, cs ContactService, tx database.Tra
 	}
 }
 
-func (pt *PatientTransaction) CreatePatientTransaction(patientDTO *dto.PatientFull) error {
+func (pt *PatientTransaction) CreatePatientTransaction(patientDTO *dto.PatientDetails) error {
 	tx, err := pt.txManager.BeginTransaction()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -42,7 +42,7 @@ func (pt *PatientTransaction) CreatePatientTransaction(patientDTO *dto.PatientFu
 		return fmt.Errorf("failed to save patient: %w", err)
 	}
 
-	patientDTO.Contact.PatientId = id
+	//patientDTO.Contact.PatientId = id
 
 	if err := pt.contactService.CreateContact(patientDTO.Contact); err != nil {
 		return fmt.Errorf("failed to save contact: %w", err)
@@ -51,6 +51,8 @@ func (pt *PatientTransaction) CreatePatientTransaction(patientDTO *dto.PatientFu
 	if err := pt.txManager.CommitTransaction(tx); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
+
+	fmt.Println(id)
 
 	return nil
 }
