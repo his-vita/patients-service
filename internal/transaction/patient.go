@@ -23,7 +23,7 @@ type PatientTransaction struct {
 	txManager      database.TransactionManager
 }
 
-func New(ps PatientService, cs ContactService, tx database.TransactionManager) *PatientTransaction {
+func NewPatientTransaction(ps PatientService, cs ContactService, tx database.TransactionManager) *PatientTransaction {
 	return &PatientTransaction{
 		patientService: ps,
 		contactService: cs,

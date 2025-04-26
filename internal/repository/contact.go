@@ -16,7 +16,7 @@ type ContactRepository struct {
 	sqlStore  *sqlstore.SqlStore
 }
 
-func New(pgContext *postgres.PgContext, sqlStore *sqlstore.SqlStore) *ContactRepository {
+func NewContactRepository(pgContext *postgres.PgContext, sqlStore *sqlstore.SqlStore) *ContactRepository {
 	return &ContactRepository{
 		pgContext: pgContext,
 		sqlStore:  sqlStore,

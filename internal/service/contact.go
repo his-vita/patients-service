@@ -23,7 +23,7 @@ type ContactService struct {
 	contactRepository ContactRepository
 }
 
-func New(log *slog.Logger, r ContactRepository) *ContactService {
+func NewContactService(log *slog.Logger, r ContactRepository) *ContactService {
 	return &ContactService{
 		log:               log,
 		contactRepository: r,

@@ -28,7 +28,7 @@ type PatientService struct {
 	patientRepository PatientRepository
 }
 
-func New(log *slog.Logger, r PatientRepository) *PatientService {
+func NewPatientService(log *slog.Logger, r PatientRepository) *PatientService {
 	return &PatientService{
 		log:               log,
 		patientRepository: r,

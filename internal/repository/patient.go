@@ -17,7 +17,7 @@ type PatientRepository struct {
 	sqlStore  *sqlstore.SqlStore
 }
 
-func New(pgContext *postgres.PgContext, sqlStore *sqlstore.SqlStore) *PatientRepository {
+func NewPatientRepository(pgContext *postgres.PgContext, sqlStore *sqlstore.SqlStore) *PatientRepository {
 	return &PatientRepository{
 		pgContext: pgContext,
 		sqlStore:  sqlStore,
