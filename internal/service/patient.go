@@ -13,8 +13,8 @@ import (
 type PatientRepository interface {
 	GetPatient(id *uuid.UUID) (*entity.Patient, error)
 	GetPatients(limit int, offset int) (*[]entity.Patient, error)
-	UpdatePatient(patient *entity.Patient) error
-	CreatePatient(ctx context.Context, patient *entity.Patient) (*uuid.UUID, error)
+	UpdatePatient(tx context.Context, patient *entity.Patient) error
+	CreatePatient(tx context.Context, patient *entity.Patient) (*uuid.UUID, error)
 	MarkPatientAsDeleted(id *uuid.UUID) error
 	UnMarkPatientAsDeleted(id *uuid.UUID) error
 }
@@ -55,8 +55,8 @@ func (ps *PatientService) GetPatients(limit int, offset int) (*[]dto.PatientDeta
 	return patientDTOs, nil
 }
 
-func (ps *PatientService) UpdatePatient(patient *entity.Patient) error {
-	err := ps.patientRepository.UpdatePatient(patient)
+func (ps *PatientService) UpdatePatient(tx context.Context, patient *entity.Patient) error {
+	err := ps.patientRepository.UpdatePatient(tx, patient)
 	if err != nil {
 		return err
 	}
@@ -64,10 +64,10 @@ func (ps *PatientService) UpdatePatient(patient *entity.Patient) error {
 	return nil
 }
 
-func (ps *PatientService) CreatePatient(ctx context.Context, patientDTO *dto.Patient) (*uuid.UUID, error) {
+func (ps *PatientService) CreatePatient(tx context.Context, patientDTO *dto.Patient) (*uuid.UUID, error) {
 	patient := mapper.PatientToEntity(patientDTO)
 
-	id, err := ps.patientRepository.CreatePatient(ctx, patient)
+	id, err := ps.patientRepository.CreatePatient(tx, patient)
 	if err != nil {
 		return nil, err
 	}

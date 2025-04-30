@@ -13,8 +13,8 @@ import (
 
 type ContactRepository interface {
 	GetContactsByPatientId(id *uuid.UUID) (*[]entity.Contact, error)
-	UpdateContact(contact *entity.Contact) error
-	CreateContact(ctx context.Context, contact *entity.Contact) error
+	UpdateContact(tx context.Context, contact *entity.Contact) error
+	CreateContact(tx context.Context, contact *entity.Contact) error
 	DeleteContact(id *uuid.UUID) error
 }
 
@@ -39,8 +39,8 @@ func (cs *ContactService) GetContactsByPatientId(id *uuid.UUID) (*[]entity.Conta
 	return contacts, nil
 }
 
-func (cs *ContactService) UpdateContact(contact *entity.Contact) error {
-	err := cs.contactRepository.UpdateContact(contact)
+func (cs *ContactService) UpdateContact(tx context.Context, contact *entity.Contact) error {
+	err := cs.contactRepository.UpdateContact(tx, contact)
 	if err != nil {
 		return err
 	}
@@ -48,13 +48,13 @@ func (cs *ContactService) UpdateContact(contact *entity.Contact) error {
 	return nil
 }
 
-func (cs *ContactService) CreateContact(ctx context.Context, contactDTO *dto.Contact) error {
+func (cs *ContactService) CreateContact(tx context.Context, contactDTO *dto.Contact) error {
 	contact := mapper.ContactToEntity(contactDTO)
 	if contact == nil {
 		return fmt.Errorf("error on contact mapping")
 	}
 
-	err := cs.contactRepository.CreateContact(ctx, contact)
+	err := cs.contactRepository.CreateContact(tx, contact)
 	if err != nil {
 		return err
 	}

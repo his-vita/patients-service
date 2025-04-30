@@ -34,9 +34,9 @@ func Run(cfg *config.Config) {
 	patientService := service.NewPatientService(log, patientRepository)
 	contactService := service.NewContactService(log, contactRepository)
 
-	patientTransaction := transaction.NewPatientTransaction(patientService, contactService, txManager)
+	transaction := transaction.NewTransaction(patientService, contactService, txManager)
 
-	patientController := v1.NewPatientController(patientService, patientTransaction)
+	patientController := v1.NewPatientController(patientService, transaction)
 	contactController := v1.NewContactController(contactService)
 
 	httpServer := httpserver.New(cfg.Env, &cfg.Server)

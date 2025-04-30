@@ -12,8 +12,8 @@ import (
 
 type ContactService interface {
 	GetContactsByPatientId(id *uuid.UUID) (*[]entity.Contact, error)
-	UpdateContact(contact *entity.Contact) error
-	CreateContact(ctx context.Context, contact *dto.Contact) error
+	UpdateContact(tx context.Context, contact *entity.Contact) error
+	CreateContact(tx context.Context, contact *dto.Contact) error
 	DeleteContact(id *uuid.UUID) error
 }
 
@@ -52,7 +52,7 @@ func (cc *ContactController) UpdateContact(c *gin.Context) {
 		return
 	}
 
-	if err := cc.contactService.UpdateContact(&contact); err != nil {
+	if err := cc.contactService.UpdateContact(context.Background(), &contact); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

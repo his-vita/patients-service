@@ -14,25 +14,25 @@ import (
 type PatientService interface {
 	GetPatient(id *uuid.UUID) (*entity.Patient, error)
 	GetPatients(limit int, offset int) (*[]dto.PatientDetails, error)
-	UpdatePatient(patient *entity.Patient) error
-	CreatePatient(ctx context.Context, patient *dto.Patient) (*uuid.UUID, error)
+	UpdatePatient(tx context.Context, patient *entity.Patient) error
+	CreatePatient(tx context.Context, patient *dto.Patient) (*uuid.UUID, error)
 	MarkPatientAsDeleted(id *uuid.UUID) error
 	UnMarkPatientAsDeleted(id *uuid.UUID) error
 }
 
-type PatientTransaction interface {
-	CreatePatientTransaction(patientDTO *dto.PatientDetails) error
+type Transaction interface {
+	CreatePatient(patientDTO *dto.PatientDetails) error
 }
 
 type PatientController struct {
-	patientService     PatientService
-	patientTransaction PatientTransaction
+	patientService PatientService
+	transaction    Transaction
 }
 
-func NewPatientController(s PatientService, pt PatientTransaction) *PatientController {
+func NewPatientController(s PatientService, tr Transaction) *PatientController {
 	return &PatientController{
-		patientService:     s,
-		patientTransaction: pt,
+		patientService: s,
+		transaction:    tr,
 	}
 }
 
@@ -86,7 +86,7 @@ func (pc *PatientController) UpdatePatient(c *gin.Context) {
 		return
 	}
 
-	if err := pc.patientService.UpdatePatient(&patient); err != nil {
+	if err := pc.patientService.UpdatePatient(context.Background(), &patient); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -95,23 +95,6 @@ func (pc *PatientController) UpdatePatient(c *gin.Context) {
 }
 
 func (pc *PatientController) CreatePatient(c *gin.Context) {
-	var patient dto.Patient
-
-	if err := c.ShouldBindJSON(&patient); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})
-		return
-	}
-
-	_, err := pc.patientService.CreatePatient(context.Background(), &patient)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Patient created successfully"})
-}
-
-func (pc *PatientController) CreatePatientTransaction(c *gin.Context) {
 	var patient dto.PatientDetails
 
 	if err := c.ShouldBindJSON(&patient); err != nil {
@@ -119,7 +102,7 @@ func (pc *PatientController) CreatePatientTransaction(c *gin.Context) {
 		return
 	}
 
-	if err := pc.patientTransaction.CreatePatientTransaction(&patient); err != nil {
+	if err := pc.transaction.CreatePatient(&patient); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

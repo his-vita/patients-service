@@ -99,7 +99,7 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) (*[]entity.Patie
 	return &patients, nil
 }
 
-func (pr *PatientRepository) UpdatePatient(patient *entity.Patient) error {
+func (pr *PatientRepository) UpdatePatient(tx context.Context, patient *entity.Patient) error {
 	query, err := pr.sqlStore.GetQuery("update_patient.sql")
 	if err != nil {
 		return fmt.Errorf("SQL query update_patient.sql not found")
@@ -108,7 +108,7 @@ func (pr *PatientRepository) UpdatePatient(patient *entity.Patient) error {
 	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
 
-	res, err := pr.pgContext.Pool.Exec(ctx, query,
+	res, err := pr.pgContext.TxOrDb(tx).Exec(ctx, query,
 		patient.ID,
 		patient.FirstName,
 		patient.LastName,
@@ -130,7 +130,7 @@ func (pr *PatientRepository) UpdatePatient(patient *entity.Patient) error {
 	return nil
 }
 
-func (pr *PatientRepository) CreatePatient(ctx context.Context, patient *entity.Patient) (*uuid.UUID, error) {
+func (pr *PatientRepository) CreatePatient(tx context.Context, patient *entity.Patient) (*uuid.UUID, error) {
 	query, err := pr.sqlStore.GetQuery("insert_patient.sql")
 	if err != nil {
 		return nil, fmt.Errorf("SQL query insert_patient.sql not found")
@@ -138,32 +138,20 @@ func (pr *PatientRepository) CreatePatient(ctx context.Context, patient *entity.
 
 	var patientID uuid.UUID
 
-	tx, ok := ctx.Value("transaction").(pgx.Tx)
-	ctxTimeout, cancel := pr.pgContext.DefaultTimeoutCtx()
+	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
 
-	if !ok {
-		err := pr.pgContext.Pool.QueryRow(ctxTimeout, query,
-			patient.FirstName,
-			patient.LastName,
-			patient.MiddleName,
-			patient.BirthDate,
-			patient.Gender,
-			"admin").Scan(&patientID)
-		if err != nil {
-			return nil, fmt.Errorf("error creating patient: %w", err)
-		}
-	} else {
-		err := tx.QueryRow(ctxTimeout, query,
-			patient.FirstName,
-			patient.LastName,
-			patient.MiddleName,
-			patient.BirthDate,
-			patient.Gender,
-			"admin").Scan(&patientID)
-		if err != nil {
-			return nil, fmt.Errorf("error creating patient: %w", err)
-		}
+	fmt.Println(tx)
+
+	err = pr.pgContext.TxOrDb(tx).QueryRow(ctx, query,
+		patient.FirstName,
+		patient.LastName,
+		patient.MiddleName,
+		patient.BirthDate,
+		patient.Gender,
+		"admin").Scan(&patientID)
+	if err != nil {
+		return nil, fmt.Errorf("error creating patient: %w", err)
 	}
 
 	return &patientID, nil

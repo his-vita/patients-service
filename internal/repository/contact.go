@@ -46,7 +46,7 @@ func (cr *ContactRepository) GetContactsByPatientId(id *uuid.UUID) (*[]entity.Co
 	return &contacts, nil
 }
 
-func (cr *ContactRepository) UpdateContact(contact *entity.Contact) error {
+func (cr *ContactRepository) UpdateContact(tx context.Context, contact *entity.Contact) error {
 	query, err := cr.sqlStore.GetQuery("update_contact.sql")
 	if err != nil {
 		return fmt.Errorf("SQL query update_contact.sql not found")
@@ -55,7 +55,7 @@ func (cr *ContactRepository) UpdateContact(contact *entity.Contact) error {
 	ctx, cancel := cr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
 
-	_, err = cr.pgContext.Pool.Exec(ctx, query,
+	_, err = cr.pgContext.TxOrDb(tx).Exec(ctx, query,
 		contact.ID,
 		contact.PhoneNumber,
 		contact.WorkPhoneNumber,
@@ -67,35 +67,22 @@ func (cr *ContactRepository) UpdateContact(contact *entity.Contact) error {
 	return nil
 }
 
-func (cr *ContactRepository) CreateContact(ctx context.Context, contact *entity.Contact) error {
+func (cr *ContactRepository) CreateContact(tx context.Context, contact *entity.Contact) error {
 	query, err := cr.sqlStore.GetQuery("insert_contact.sql")
 	if err != nil {
 		return fmt.Errorf("SQL query insert_contact.sql not found")
 	}
 
-	tx, ok := ctx.Value("transaction").(pgx.Tx)
-
-	ctxTimeout, cancel := cr.pgContext.DefaultTimeoutCtx()
+	ctx, cancel := cr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
 
-	if !ok {
-		_, err := cr.pgContext.Pool.Exec(ctxTimeout, query,
-			contact.PatientID,
-			contact.PhoneNumber,
-			contact.WorkPhoneNumber,
-			contact.Email)
-		if err != nil {
-			return fmt.Errorf("error creating contact: %w", err)
-		}
-	} else {
-		_, err = tx.Exec(ctxTimeout, query,
-			contact.PatientID,
-			contact.PhoneNumber,
-			contact.WorkPhoneNumber,
-			contact.Email)
-		if err != nil {
-			return fmt.Errorf("error creating contact: %w", err)
-		}
+	_, err = cr.pgContext.TxOrDb(tx).Exec(ctx, query,
+		contact.PatientID,
+		contact.PhoneNumber,
+		contact.WorkPhoneNumber,
+		contact.Email)
+	if err != nil {
+		return fmt.Errorf("error creating contact: %w", err)
 	}
 
 	return nil
