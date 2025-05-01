@@ -1,1 +1,0 @@
-SELECT * FROM contacts WHERE patient_id = $1

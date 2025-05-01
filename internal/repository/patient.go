@@ -24,6 +24,33 @@ func NewPatientRepository(pgContext *postgres.PgContext, sqlStore *sqlstore.SqlS
 	}
 }
 
+func (pr *PatientRepository) CreatePatient(tx context.Context, patient *entity.Patient) (*uuid.UUID, error) {
+	query, err := pr.sqlStore.GetQuery("insert_patient.sql")
+	if err != nil {
+		return nil, fmt.Errorf("SQL query insert_patient.sql not found")
+	}
+
+	var patientID uuid.UUID
+
+	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
+	defer cancel()
+
+	fmt.Println(tx)
+
+	err = pr.pgContext.TxOrDb(tx).QueryRow(ctx, query,
+		patient.FirstName,
+		patient.LastName,
+		patient.MiddleName,
+		patient.BirthDate,
+		patient.Gender,
+		"admin").Scan(&patientID)
+	if err != nil {
+		return nil, fmt.Errorf("error creating patient: %w", err)
+	}
+
+	return &patientID, nil
+}
+
 func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*entity.Patient, error) {
 	query, err := pr.sqlStore.GetQuery("get_patient_by_id.sql")
 	if err != nil {
@@ -41,13 +68,11 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*entity.Patient, error) 
 		&patient.MiddleName,
 		&patient.BirthDate,
 		&patient.Gender,
-		&patient.CreatedTS,
-		&patient.CreatedBy,
-		&patient.UpdatedTS,
-		&patient.UpdatedBy,
-		&patient.DeletedTS,
-		&patient.DeletedBy,
-		&patient.Version)
+		&patient.Version,
+		&patient.Contact.ID,
+		&patient.Contact.PhoneNumber,
+		&patient.Contact.WorkPhoneNumber,
+		&patient.Contact.Email)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("patient with id %s not found", id)
@@ -58,7 +83,7 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*entity.Patient, error) 
 	return &patient, nil
 }
 
-func (pr *PatientRepository) GetPatients(limit int, offset int) (*[]entity.Patient, error) {
+func (pr *PatientRepository) GetPatients(limit int, offset int) ([]entity.Patient, error) {
 	query, err := pr.sqlStore.GetQuery("get_patients.sql")
 	if err != nil {
 		return nil, fmt.Errorf("SQL query get_patients.sql not found")
@@ -85,7 +110,6 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) (*[]entity.Patie
 			&patient.MiddleName,
 			&patient.BirthDate,
 			&patient.Gender,
-			&patient.Contact.ID,
 			&patient.Contact.PhoneNumber,
 			&patient.Contact.WorkPhoneNumber,
 			&patient.Contact.Email)
@@ -96,7 +120,7 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) (*[]entity.Patie
 		patients = append(patients, patient)
 	}
 
-	return &patients, nil
+	return patients, nil
 }
 
 func (pr *PatientRepository) UpdatePatient(tx context.Context, patient *entity.Patient) error {
@@ -128,33 +152,6 @@ func (pr *PatientRepository) UpdatePatient(tx context.Context, patient *entity.P
 	}
 
 	return nil
-}
-
-func (pr *PatientRepository) CreatePatient(tx context.Context, patient *entity.Patient) (*uuid.UUID, error) {
-	query, err := pr.sqlStore.GetQuery("insert_patient.sql")
-	if err != nil {
-		return nil, fmt.Errorf("SQL query insert_patient.sql not found")
-	}
-
-	var patientID uuid.UUID
-
-	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
-	defer cancel()
-
-	fmt.Println(tx)
-
-	err = pr.pgContext.TxOrDb(tx).QueryRow(ctx, query,
-		patient.FirstName,
-		patient.LastName,
-		patient.MiddleName,
-		patient.BirthDate,
-		patient.Gender,
-		"admin").Scan(&patientID)
-	if err != nil {
-		return nil, fmt.Errorf("error creating patient: %w", err)
-	}
-
-	return &patientID, nil
 }
 
 func (pr *PatientRepository) MarkPatientAsDeleted(id *uuid.UUID) error {

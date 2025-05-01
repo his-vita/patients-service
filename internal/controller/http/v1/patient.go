@@ -1,27 +1,24 @@
 package v1
 
 import (
-	"context"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/his-vita/patients-service/internal/dto"
-	"github.com/his-vita/patients-service/internal/entity"
+	"github.com/his-vita/patients-service/internal/model"
 )
 
 type PatientService interface {
-	GetPatient(id *uuid.UUID) (*entity.Patient, error)
-	GetPatients(limit int, offset int) (*[]dto.PatientDetails, error)
-	UpdatePatient(tx context.Context, patient *entity.Patient) error
-	CreatePatient(tx context.Context, patient *dto.Patient) (*uuid.UUID, error)
+	GetPatient(id *uuid.UUID) (*model.GetPatient, error)
+	GetPatients(limit int, offset int) ([]model.GetPatient, error)
 	MarkPatientAsDeleted(id *uuid.UUID) error
 	UnMarkPatientAsDeleted(id *uuid.UUID) error
 }
 
 type Transaction interface {
-	CreatePatient(patientDTO *dto.PatientDetails) error
+	CreatePatient(createPatient *model.CreatePatient) error
+	UpdatePatient(updatePatient *model.UpdatePatient) error
 }
 
 type PatientController struct {
@@ -34,6 +31,38 @@ func NewPatientController(s PatientService, tr Transaction) *PatientController {
 		patientService: s,
 		transaction:    tr,
 	}
+}
+
+func (pc *PatientController) CreatePatient(c *gin.Context) {
+	var createPatient model.CreatePatient
+
+	if err := c.ShouldBindJSON(&createPatient); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})
+		return
+	}
+
+	if err := pc.transaction.CreatePatient(&createPatient); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Patient created successfully with transaction"})
+}
+
+func (pc *PatientController) UpdatePatient(c *gin.Context) {
+	var patient model.UpdatePatient
+
+	if err := c.ShouldBindJSON(&patient); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})
+		return
+	}
+
+	if err := pc.transaction.UpdatePatient(&patient); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Patient updated successfully"})
 }
 
 func (pc *PatientController) GetPatient(c *gin.Context) {
@@ -76,38 +105,6 @@ func (pc *PatientController) GetPatients(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, patients)
-}
-
-func (pc *PatientController) UpdatePatient(c *gin.Context) {
-	var patient entity.Patient
-
-	if err := c.ShouldBindJSON(&patient); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})
-		return
-	}
-
-	if err := pc.patientService.UpdatePatient(context.Background(), &patient); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Patient updated successfully"})
-}
-
-func (pc *PatientController) CreatePatient(c *gin.Context) {
-	var patient dto.PatientDetails
-
-	if err := c.ShouldBindJSON(&patient); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})
-		return
-	}
-
-	if err := pc.transaction.CreatePatient(&patient); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Patient created successfully with transaction"})
 }
 
 func (pc *PatientController) MarkPatientAsDeleted(c *gin.Context) {

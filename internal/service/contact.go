@@ -5,17 +5,13 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/google/uuid"
-	"github.com/his-vita/patients-service/internal/dto"
 	"github.com/his-vita/patients-service/internal/entity"
-	"github.com/his-vita/patients-service/internal/mapper"
+	"github.com/his-vita/patients-service/internal/model"
 )
 
 type ContactRepository interface {
-	GetContactsByPatientId(id *uuid.UUID) (*[]entity.Contact, error)
-	UpdateContact(tx context.Context, contact *entity.Contact) error
 	CreateContact(tx context.Context, contact *entity.Contact) error
-	DeleteContact(id *uuid.UUID) error
+	UpdateContact(tx context.Context, contact *entity.Contact) error
 }
 
 type ContactService struct {
@@ -30,26 +26,8 @@ func NewContactService(log *slog.Logger, r ContactRepository) *ContactService {
 	}
 }
 
-func (cs *ContactService) GetContactsByPatientId(id *uuid.UUID) (*[]entity.Contact, error) {
-	contacts, err := cs.contactRepository.GetContactsByPatientId(id)
-	if err != nil {
-		return nil, err
-	}
-
-	return contacts, nil
-}
-
-func (cs *ContactService) UpdateContact(tx context.Context, contact *entity.Contact) error {
-	err := cs.contactRepository.UpdateContact(tx, contact)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (cs *ContactService) CreateContact(tx context.Context, contactDTO *dto.Contact) error {
-	contact := mapper.ContactToEntity(contactDTO)
+func (cs *ContactService) CreateContact(tx context.Context, createContact *model.CreateContact) error {
+	contact := createContact.ToEntity()
 	if contact == nil {
 		return fmt.Errorf("error on contact mapping")
 	}
@@ -62,8 +40,13 @@ func (cs *ContactService) CreateContact(tx context.Context, contactDTO *dto.Cont
 	return nil
 }
 
-func (cs *ContactService) DeleteContact(id *uuid.UUID) error {
-	err := cs.contactRepository.DeleteContact(id)
+func (cs *ContactService) UpdateContact(tx context.Context, updateContact *model.UpdateContact) error {
+	contact := updateContact.ToEntity()
+	if contact == nil {
+		return fmt.Errorf("error on contact mapping")
+	}
+
+	err := cs.contactRepository.UpdateContact(tx, contact)
 	if err != nil {
 		return err
 	}
