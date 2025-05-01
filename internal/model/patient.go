@@ -69,7 +69,6 @@ func (p *GetPatient) ToModel(patient *entity.Patient) *GetPatient {
 		Gender:     patient.Gender,
 		Version:    patient.Version,
 		Contact: GetContact{
-			ID:              patient.Contact.ID,
 			WorkPhoneNumber: patient.Contact.WorkPhoneNumber,
 			PhoneNumber:     patient.Contact.PhoneNumber,
 			Email:           patient.Contact.Email,

@@ -4,4 +4,4 @@ SET
     work_phone_number = $3,
     email = $4
 WHERE
-    id = $1
+    patient_id = $1

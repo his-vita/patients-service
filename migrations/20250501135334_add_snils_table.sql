@@ -1,15 +1,13 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE contacts (
+CREATE TABLE snils (
     patient_id UUID PRIMARY KEY,
-    phone_number CHAR(11) DEFAULT NULL,
-    work_phone_number CHAR(11) DEFAULT NULL,
-    email VARCHAR(32) DEFAULT NULL,
+    snils CHAR(11),
     FOREIGN KEY (patient_id) REFERENCES patients(id)
 );
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE contacts;
+DROP TABLE snils;
 -- +goose StatementEnd

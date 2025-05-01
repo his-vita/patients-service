@@ -22,7 +22,7 @@ func (c *CreateContact) ToEntity() *entity.Contact {
 }
 
 type UpdateContact struct {
-	ID              uuid.UUID `json:"id"`
+	PatientId       uuid.UUID `json:"patient_id"`
 	WorkPhoneNumber *string   `json:"work_phone_number"`
 	PhoneNumber     *string   `json:"phone_number"`
 	Email           *string   `json:"email"`
@@ -30,7 +30,7 @@ type UpdateContact struct {
 
 func (c *UpdateContact) ToEntity() *entity.Contact {
 	return &entity.Contact{
-		ID:              &c.ID,
+		PatientID:       &c.PatientId,
 		PhoneNumber:     c.PhoneNumber,
 		WorkPhoneNumber: c.WorkPhoneNumber,
 		Email:           c.Email,
@@ -38,8 +38,7 @@ func (c *UpdateContact) ToEntity() *entity.Contact {
 }
 
 type GetContact struct {
-	ID              *uuid.UUID `json:"id,omitempty"`
-	WorkPhoneNumber *string    `json:"work_phone_number"`
-	PhoneNumber     *string    `json:"phone_number"`
-	Email           *string    `json:"email"`
+	WorkPhoneNumber *string `json:"work_phone_number"`
+	PhoneNumber     *string `json:"phone_number"`
+	Email           *string `json:"email"`
 }

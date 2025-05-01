@@ -69,7 +69,6 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*entity.Patient, error) 
 		&patient.BirthDate,
 		&patient.Gender,
 		&patient.Version,
-		&patient.Contact.ID,
 		&patient.Contact.PhoneNumber,
 		&patient.Contact.WorkPhoneNumber,
 		&patient.Contact.Email)

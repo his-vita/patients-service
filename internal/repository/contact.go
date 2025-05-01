@@ -52,7 +52,7 @@ func (cr *ContactRepository) UpdateContact(tx context.Context, contact *entity.C
 	defer cancel()
 
 	_, err = cr.pgContext.TxOrDb(tx).Exec(ctx, query,
-		contact.ID,
+		contact.PatientID,
 		contact.PhoneNumber,
 		contact.WorkPhoneNumber,
 		contact.Email)

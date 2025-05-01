@@ -6,7 +6,6 @@ SELECT
     p.birth_date,
     p.gender,
     p.version,
-    c.id,
     c.phone_number,
     c.work_phone_number,
     c.email
