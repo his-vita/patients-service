@@ -71,7 +71,8 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*entity.Patient, error) 
 		&patient.Version,
 		&patient.Contact.PhoneNumber,
 		&patient.Contact.WorkPhoneNumber,
-		&patient.Contact.Email)
+		&patient.Contact.Email,
+		&patient.Snils.Number)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("patient with id %s not found", id)
@@ -111,7 +112,8 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) ([]entity.Patien
 			&patient.Gender,
 			&patient.Contact.PhoneNumber,
 			&patient.Contact.WorkPhoneNumber,
-			&patient.Contact.Email)
+			&patient.Contact.Email,
+			&patient.Snils.Number)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
