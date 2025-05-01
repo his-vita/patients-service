@@ -5,11 +5,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/his-vita/patients-service/internal/model"
 )
 
 type SnilsService interface {
-	UpdateSnils(tx context.Context, updateSnils *model.Snils) error
+	UpdateSnils(tx context.Context, id *uuid.UUID, updateSnils *model.Snils) error
 }
 
 type SnilsController struct {
@@ -23,6 +24,13 @@ func NewSnilsController(s SnilsService) *SnilsController {
 }
 
 func (cc *SnilsController) UpdateSnils(c *gin.Context) {
+	id, exists := c.Get("id")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID not found in context"})
+		return
+	}
+	uuid := id.(uuid.UUID)
+
 	var snils model.Snils
 
 	if err := c.ShouldBindJSON(&snils); err != nil {
@@ -30,7 +38,7 @@ func (cc *SnilsController) UpdateSnils(c *gin.Context) {
 		return
 	}
 
-	if err := cc.snilsService.UpdateSnils(context.Background(), &snils); err != nil {
+	if err := cc.snilsService.UpdateSnils(context.Background(), &uuid, &snils); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/his-vita/patients-service/internal/entity"
 	"github.com/his-vita/patients-service/pkg/database/postgres"
 	"github.com/his-vita/patients-service/pkg/sqlstore"
@@ -21,7 +22,7 @@ func NewSnilsRepository(pgContext *postgres.PgContext, sqlStore *sqlstore.SqlSto
 	}
 }
 
-func (cr *SnilsRepository) CreateSnils(tx context.Context, snils *entity.Snils) error {
+func (cr *SnilsRepository) CreateSnils(tx context.Context, id *uuid.UUID, snils *entity.Snils) error {
 	query, err := cr.sqlStore.GetQuery("insert_snils.sql")
 	if err != nil {
 		return fmt.Errorf("SQL query insert_snils.sql not found")
@@ -31,7 +32,7 @@ func (cr *SnilsRepository) CreateSnils(tx context.Context, snils *entity.Snils) 
 	defer cancel()
 
 	_, err = cr.pgContext.TxOrDb(tx).Exec(ctx, query,
-		snils.PatientID,
+		id,
 		snils.Number)
 	if err != nil {
 		return fmt.Errorf("error creating snils: %w", err)
@@ -40,7 +41,7 @@ func (cr *SnilsRepository) CreateSnils(tx context.Context, snils *entity.Snils) 
 	return nil
 }
 
-func (cr *SnilsRepository) UpdateSnils(tx context.Context, snils *entity.Snils) error {
+func (cr *SnilsRepository) UpdateSnils(tx context.Context, id *uuid.UUID, snils *entity.Snils) error {
 	query, err := cr.sqlStore.GetQuery("update_snils.sql")
 	if err != nil {
 		return fmt.Errorf("SQL query update_snils.sql not found")
@@ -50,7 +51,7 @@ func (cr *SnilsRepository) UpdateSnils(tx context.Context, snils *entity.Snils) 
 	defer cancel()
 
 	_, err = cr.pgContext.TxOrDb(tx).Exec(ctx, query,
-		snils.PatientID,
+		id,
 		snils.Number)
 	if err != nil {
 		return fmt.Errorf("error update snils: %w", err)

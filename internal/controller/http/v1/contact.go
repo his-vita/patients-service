@@ -5,11 +5,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/his-vita/patients-service/internal/model"
 )
 
 type ContactService interface {
-	UpdateContact(tx context.Context, updateContact *model.UpdateContact) error
+	UpdateContact(tx context.Context, id *uuid.UUID, updateContact *model.UpdateContact) error
 }
 
 type ContactController struct {
@@ -23,6 +24,13 @@ func NewContactController(s ContactService) *ContactController {
 }
 
 func (cc *ContactController) UpdateContact(c *gin.Context) {
+	id, exists := c.Get("id")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID not found in context"})
+		return
+	}
+	uuid := id.(uuid.UUID)
+
 	var contact model.UpdateContact
 
 	if err := c.ShouldBindJSON(&contact); err != nil {
@@ -30,7 +38,7 @@ func (cc *ContactController) UpdateContact(c *gin.Context) {
 		return
 	}
 
-	if err := cc.contactService.UpdateContact(context.Background(), &contact); err != nil {
+	if err := cc.contactService.UpdateContact(context.Background(), &uuid, &contact); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

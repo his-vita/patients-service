@@ -14,13 +14,13 @@ type PatientService interface {
 }
 
 type ContactService interface {
-	CreateContact(ctx context.Context, createContact *model.CreateContact) error
-	UpdateContact(ctx context.Context, updateContact *model.UpdateContact) error
+	CreateContact(ctx context.Context, id *uuid.UUID, createContact *model.CreateContact) error
+	UpdateContact(ctx context.Context, id *uuid.UUID, updateContact *model.UpdateContact) error
 }
 
 type SnilsService interface {
-	CreateSnils(ctx context.Context, createSnils *model.Snils) error
-	UpdateSnils(ctx context.Context, updateSnils *model.Snils) error
+	CreateSnils(ctx context.Context, id *uuid.UUID, createSnils *model.Snils) error
+	UpdateSnils(ctx context.Context, id *uuid.UUID, updateSnils *model.Snils) error
 }
 
 type Transaction struct {
