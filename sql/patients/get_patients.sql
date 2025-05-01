@@ -7,9 +7,11 @@ SELECT
     p.gender,
     c.phone_number,
     c.work_phone_number,
-    c.email
+    c.email,
+    s.number
 FROM patients p
     INNER JOIN contacts c ON c.patient_id = p.id
+    INNER JOIN snils s ON s.patient_id = p.id
 WHERE
     p.deleted_ts IS NULL
 ORDER BY p.last_name

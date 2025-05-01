@@ -30,14 +30,17 @@ func Run(cfg *config.Config) {
 
 	patientRepository := repository.NewPatientRepository(pgContext, sqlStore)
 	contactRepository := repository.NewContactRepository(pgContext, sqlStore)
+	snilsRepository := repository.NewSnilsRepository(pgContext, sqlStore)
 
 	patientService := service.NewPatientService(log, patientRepository)
 	contactService := service.NewContactService(log, contactRepository)
+	snilsService := service.NewSnilsService(log, snilsRepository)
 
-	transaction := transaction.NewTransaction(patientService, contactService, txManager)
+	transaction := transaction.NewTransaction(patientService, contactService, snilsService, txManager)
 
 	patientController := v1.NewPatientController(patientService, transaction)
 	contactController := v1.NewContactController(contactService)
+	snilsController := v1.NewSnilsController(snilsService)
 
 	httpServer := httpserver.New(cfg.Env, &cfg.Server)
 
@@ -45,6 +48,7 @@ func Run(cfg *config.Config) {
 
 	routes.PatientRoutes(rg, patientController)
 	routes.ContactRoutes(rg, contactController)
+	routes.SnilsRoutes(rg, snilsController)
 
 	if err := httpServer.Run(&cfg.Server); err != nil {
 		panic(err)

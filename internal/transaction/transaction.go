@@ -18,16 +18,23 @@ type ContactService interface {
 	UpdateContact(ctx context.Context, updateContact *model.UpdateContact) error
 }
 
+type SnilsService interface {
+	CreateSnils(ctx context.Context, createSnils *model.Snils) error
+	UpdateSnils(ctx context.Context, updateSnils *model.Snils) error
+}
+
 type Transaction struct {
 	patientService PatientService
 	contactService ContactService
+	snilsService   SnilsService
 	txManager      database.TransactionManager
 }
 
-func NewTransaction(ps PatientService, cs ContactService, tx database.TransactionManager) *Transaction {
+func NewTransaction(ps PatientService, cs ContactService, ss SnilsService, tx database.TransactionManager) *Transaction {
 	return &Transaction{
 		patientService: ps,
 		contactService: cs,
+		snilsService:   ss,
 		txManager:      tx,
 	}
 }

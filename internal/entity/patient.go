@@ -20,4 +20,5 @@ type Patient struct {
 	DeletedBy  *string         `json:"deleted_by"`
 	Version    int             `json:"version"`
 	Contact    Contact         `json:"contact"`
+	Snils      Snils           `json:"snils"`
 }

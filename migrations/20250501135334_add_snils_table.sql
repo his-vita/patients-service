@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE snils (
     patient_id UUID PRIMARY KEY,
-    snils CHAR(11),
+    number CHAR(11),
     FOREIGN KEY (patient_id) REFERENCES patients(id)
 );
 -- +goose StatementEnd

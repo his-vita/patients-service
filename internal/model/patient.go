@@ -13,6 +13,7 @@ type CreatePatient struct {
 	BirthDate  civil.Date    `json:"birth_date"`
 	Gender     *bool         `json:"gender"`
 	Contact    CreateContact `json:"contact"`
+	Snils      Snils         `json:"snils"`
 }
 
 func (p *CreatePatient) ToEntity() *entity.Patient {
@@ -34,6 +35,7 @@ type UpdatePatient struct {
 	Gender     *bool         `json:"gender"`
 	Version    int           `json:"version"`
 	Contact    UpdateContact `json:"contact"`
+	Snils      Snils         `json:"snils"`
 }
 
 func (p *UpdatePatient) ToEntity() *entity.Patient {
@@ -57,6 +59,7 @@ type GetPatient struct {
 	Gender     *bool      `json:"gender"`
 	Version    int        `json:"version,omitempty"`
 	Contact    GetContact `json:"contact"`
+	Snils      Snils      `json:"snils"`
 }
 
 func (p *GetPatient) ToModel(patient *entity.Patient) *GetPatient {
@@ -72,6 +75,9 @@ func (p *GetPatient) ToModel(patient *entity.Patient) *GetPatient {
 			WorkPhoneNumber: patient.Contact.WorkPhoneNumber,
 			PhoneNumber:     patient.Contact.PhoneNumber,
 			Email:           patient.Contact.Email,
+		},
+		Snils: Snils{
+			Number: patient.Snils.Number,
 		},
 	}
 }
