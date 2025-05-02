@@ -6,10 +6,10 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/his-vita/patients-service/internal/entity"
+	"github.com/his-vita/patients-service/internal/model"
 	"github.com/his-vita/patients-service/pkg/database/postgres"
 	"github.com/his-vita/patients-service/pkg/sqlstore"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx"
 )
 
 type PatientRepository struct {
@@ -24,7 +24,7 @@ func NewPatientRepository(pgContext *postgres.PgContext, sqlStore *sqlstore.SqlS
 	}
 }
 
-func (pr *PatientRepository) CreatePatient(tx context.Context, patient *entity.Patient) (*uuid.UUID, error) {
+func (pr *PatientRepository) CreatePatient(tx context.Context, patient *model.Patient) (*uuid.UUID, error) {
 	query, err := pr.sqlStore.GetQuery("insert_patient.sql")
 	if err != nil {
 		return nil, fmt.Errorf("SQL query insert_patient.sql not found")
@@ -51,13 +51,13 @@ func (pr *PatientRepository) CreatePatient(tx context.Context, patient *entity.P
 	return &patientID, nil
 }
 
-func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*entity.Patient, error) {
+func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*model.Patient, error) {
 	query, err := pr.sqlStore.GetQuery("get_patient_by_id.sql")
 	if err != nil {
 		return nil, fmt.Errorf("SQL query get_patient_by_id.sql not found")
 	}
 
-	var patient entity.Patient
+	var patient model.Patient
 	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
 
@@ -83,7 +83,7 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*entity.Patient, error) 
 	return &patient, nil
 }
 
-func (pr *PatientRepository) GetPatients(limit int, offset int) ([]entity.Patient, error) {
+func (pr *PatientRepository) GetPatients(limit int, offset int) ([]model.Patient, error) {
 	query, err := pr.sqlStore.GetQuery("get_patients.sql")
 	if err != nil {
 		return nil, fmt.Errorf("SQL query get_patients.sql not found")
@@ -98,10 +98,10 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) ([]entity.Patien
 	}
 	defer rows.Close()
 
-	var patients []entity.Patient
+	var patients []model.Patient
 
 	for rows.Next() {
-		var patient entity.Patient
+		var patient model.Patient
 
 		err := rows.Scan(
 			&patient.ID,
@@ -124,7 +124,7 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) ([]entity.Patien
 	return patients, nil
 }
 
-func (pr *PatientRepository) UpdatePatient(tx context.Context, patient *entity.Patient) error {
+func (pr *PatientRepository) UpdatePatient(tx context.Context, patient *model.Patient) error {
 	query, err := pr.sqlStore.GetQuery("update_patient.sql")
 	if err != nil {
 		return fmt.Errorf("SQL query update_patient.sql not found")

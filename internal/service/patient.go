@@ -2,25 +2,23 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/google/uuid"
-	"github.com/his-vita/patients-service/internal/entity"
 	"github.com/his-vita/patients-service/internal/model"
 )
 
 type PatientRepository interface {
-	GetPatient(id *uuid.UUID) (*entity.Patient, error)
-	GetPatients(limit int, offset int) ([]entity.Patient, error)
-	UpdatePatient(tx context.Context, patient *entity.Patient) error
-	CreatePatient(tx context.Context, patient *entity.Patient) (*uuid.UUID, error)
+	GetPatient(id *uuid.UUID) (*model.Patient, error)
+	GetPatients(limit int, offset int) ([]model.Patient, error)
+	UpdatePatient(tx context.Context, patient *model.Patient) error
+	CreatePatient(tx context.Context, patient *model.Patient) (*uuid.UUID, error)
 	MarkPatientAsDeleted(id *uuid.UUID) error
 	UnMarkPatientAsDeleted(id *uuid.UUID) error
 }
 
 type PatientTransactionRepository interface {
-	CreatePatient(patient *entity.Patient) error
+	CreatePatient(patient *model.Patient) error
 }
 
 type PatientService struct {
@@ -35,12 +33,7 @@ func NewPatientService(log *slog.Logger, r PatientRepository) *PatientService {
 	}
 }
 
-func (ps *PatientService) CreatePatient(tx context.Context, createPatient *model.CreatePatient) (*uuid.UUID, error) {
-	patient := createPatient.ToEntity()
-	if patient == nil {
-		return nil, fmt.Errorf("error on patient mapping")
-	}
-
+func (ps *PatientService) CreatePatient(tx context.Context, patient *model.Patient) (*uuid.UUID, error) {
 	id, err := ps.patientRepository.CreatePatient(tx, patient)
 	if err != nil {
 		return nil, err
@@ -49,12 +42,7 @@ func (ps *PatientService) CreatePatient(tx context.Context, createPatient *model
 	return id, nil
 }
 
-func (ps *PatientService) UpdatePatient(tx context.Context, updatePatient *model.UpdatePatient) error {
-	patient := updatePatient.ToEntity()
-	if patient == nil {
-		return fmt.Errorf("error on patient mapping")
-	}
-
+func (ps *PatientService) UpdatePatient(tx context.Context, patient *model.Patient) error {
 	err := ps.patientRepository.UpdatePatient(tx, patient)
 	if err != nil {
 		return err
@@ -63,26 +51,22 @@ func (ps *PatientService) UpdatePatient(tx context.Context, updatePatient *model
 	return nil
 }
 
-func (ps *PatientService) GetPatient(id *uuid.UUID) (*model.GetPatient, error) {
+func (ps *PatientService) GetPatient(id *uuid.UUID) (*model.Patient, error) {
 	patient, err := ps.patientRepository.GetPatient(id)
 	if err != nil {
 		return nil, err
 	}
 
-	var getPatient model.GetPatient
-
-	return getPatient.ToModel(patient), nil
+	return patient, nil
 }
 
-func (ps *PatientService) GetPatients(limit int, offset int) ([]model.GetPatient, error) {
+func (ps *PatientService) GetPatients(limit int, offset int) ([]model.Patient, error) {
 	patients, err := ps.patientRepository.GetPatients(limit, offset)
 	if err != nil {
 		return nil, err
 	}
 
-	var getPatient model.GetPatient
-
-	return getPatient.ToModelList(patients), nil
+	return patients, nil
 }
 
 func (ps *PatientService) MarkPatientAsDeleted(id *uuid.UUID) error {

@@ -10,15 +10,15 @@ import (
 )
 
 type PatientService interface {
-	GetPatient(id *uuid.UUID) (*model.GetPatient, error)
-	GetPatients(limit int, offset int) ([]model.GetPatient, error)
+	GetPatient(id *uuid.UUID) (*model.Patient, error)
+	GetPatients(limit int, offset int) ([]model.Patient, error)
 	MarkPatientAsDeleted(id *uuid.UUID) error
 	UnMarkPatientAsDeleted(id *uuid.UUID) error
 }
 
 type Transaction interface {
-	CreatePatient(createPatient *model.CreatePatient) error
-	UpdatePatient(updatePatient *model.UpdatePatient) error
+	CreatePatient(patient *model.Patient) error
+	UpdatePatient(patient *model.Patient) error
 }
 
 type PatientController struct {
@@ -34,14 +34,14 @@ func NewPatientController(s PatientService, tr Transaction) *PatientController {
 }
 
 func (pc *PatientController) CreatePatient(c *gin.Context) {
-	var createPatient model.CreatePatient
+	var patient model.Patient
 
-	if err := c.ShouldBindJSON(&createPatient); err != nil {
+	if err := c.ShouldBindJSON(&patient); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})
 		return
 	}
 
-	if err := pc.transaction.CreatePatient(&createPatient); err != nil {
+	if err := pc.transaction.CreatePatient(&patient); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -50,7 +50,7 @@ func (pc *PatientController) CreatePatient(c *gin.Context) {
 }
 
 func (pc *PatientController) UpdatePatient(c *gin.Context) {
-	var patient model.UpdatePatient
+	var patient model.Patient
 
 	if err := c.ShouldBindJSON(&patient); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})

@@ -7,7 +7,7 @@ import (
 	"github.com/his-vita/patients-service/internal/model"
 )
 
-func (t *Transaction) CreatePatient(createPatient *model.CreatePatient) error {
+func (t *Transaction) CreatePatient(createPatient *model.Patient) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -37,7 +37,7 @@ func (t *Transaction) CreatePatient(createPatient *model.CreatePatient) error {
 	return nil
 }
 
-func (t *Transaction) UpdatePatient(updatePatient *model.UpdatePatient) error {
+func (t *Transaction) UpdatePatient(updatePatient *model.Patient) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

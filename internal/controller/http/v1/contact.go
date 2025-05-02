@@ -10,7 +10,7 @@ import (
 )
 
 type ContactService interface {
-	UpdateContact(tx context.Context, id *uuid.UUID, updateContact *model.UpdateContact) error
+	UpdateContact(tx context.Context, id *uuid.UUID, contact *model.Contact) error
 }
 
 type ContactController struct {
@@ -31,7 +31,7 @@ func (cc *ContactController) UpdateContact(c *gin.Context) {
 	}
 	uuid := id.(uuid.UUID)
 
-	var contact model.UpdateContact
+	var contact model.Contact
 
 	if err := c.ShouldBindJSON(&contact); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input", "details": err.Error()})

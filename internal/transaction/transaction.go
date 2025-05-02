@@ -9,18 +9,18 @@ import (
 )
 
 type PatientService interface {
-	CreatePatient(ctx context.Context, createPatient *model.CreatePatient) (*uuid.UUID, error)
-	UpdatePatient(ctx context.Context, updatePatient *model.UpdatePatient) error
+	CreatePatient(ctx context.Context, patient *model.Patient) (*uuid.UUID, error)
+	UpdatePatient(ctx context.Context, patient *model.Patient) error
 }
 
 type ContactService interface {
-	CreateContact(ctx context.Context, id *uuid.UUID, createContact *model.CreateContact) error
-	UpdateContact(ctx context.Context, id *uuid.UUID, updateContact *model.UpdateContact) error
+	CreateContact(ctx context.Context, id *uuid.UUID, contact *model.Contact) error
+	UpdateContact(ctx context.Context, id *uuid.UUID, contact *model.Contact) error
 }
 
 type SnilsService interface {
-	CreateSnils(ctx context.Context, id *uuid.UUID, createSnils *model.Snils) error
-	UpdateSnils(ctx context.Context, id *uuid.UUID, updateSnils *model.Snils) error
+	CreateSnils(ctx context.Context, id *uuid.UUID, snils *model.Snils) error
+	UpdateSnils(ctx context.Context, id *uuid.UUID, snils *model.Snils) error
 }
 
 type Transaction struct {

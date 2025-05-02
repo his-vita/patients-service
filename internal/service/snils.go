@@ -2,17 +2,15 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/google/uuid"
-	"github.com/his-vita/patients-service/internal/entity"
 	"github.com/his-vita/patients-service/internal/model"
 )
 
 type SnilsRepository interface {
-	CreateSnils(tx context.Context, id *uuid.UUID, snils *entity.Snils) error
-	UpdateSnils(tx context.Context, id *uuid.UUID, snils *entity.Snils) error
+	CreateSnils(tx context.Context, id *uuid.UUID, snils *model.Snils) error
+	UpdateSnils(tx context.Context, id *uuid.UUID, snils *model.Snils) error
 }
 
 type SnilsService struct {
@@ -27,12 +25,7 @@ func NewSnilsService(log *slog.Logger, r SnilsRepository) *SnilsService {
 	}
 }
 
-func (cs *SnilsService) CreateSnils(tx context.Context, id *uuid.UUID, createSnils *model.Snils) error {
-	snils := createSnils.ToEntity()
-	if snils == nil {
-		return fmt.Errorf("error on snils mapping")
-	}
-
+func (cs *SnilsService) CreateSnils(tx context.Context, id *uuid.UUID, snils *model.Snils) error {
 	err := cs.snilsRepository.CreateSnils(tx, id, snils)
 	if err != nil {
 		return err
@@ -41,12 +34,7 @@ func (cs *SnilsService) CreateSnils(tx context.Context, id *uuid.UUID, createSni
 	return nil
 }
 
-func (cs *SnilsService) UpdateSnils(tx context.Context, id *uuid.UUID, updateSnils *model.Snils) error {
-	snils := updateSnils.ToEntity()
-	if snils == nil {
-		return fmt.Errorf("error on snils mapping")
-	}
-
+func (cs *SnilsService) UpdateSnils(tx context.Context, id *uuid.UUID, snils *model.Snils) error {
 	err := cs.snilsRepository.UpdateSnils(tx, id, snils)
 	if err != nil {
 		return err

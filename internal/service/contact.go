@@ -2,17 +2,15 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/google/uuid"
-	"github.com/his-vita/patients-service/internal/entity"
 	"github.com/his-vita/patients-service/internal/model"
 )
 
 type ContactRepository interface {
-	CreateContact(tx context.Context, id *uuid.UUID, contact *entity.Contact) error
-	UpdateContact(tx context.Context, id *uuid.UUID, contact *entity.Contact) error
+	CreateContact(tx context.Context, id *uuid.UUID, contact *model.Contact) error
+	UpdateContact(tx context.Context, id *uuid.UUID, contact *model.Contact) error
 }
 
 type ContactService struct {
@@ -27,12 +25,7 @@ func NewContactService(log *slog.Logger, r ContactRepository) *ContactService {
 	}
 }
 
-func (cs *ContactService) CreateContact(tx context.Context, id *uuid.UUID, createContact *model.CreateContact) error {
-	contact := createContact.ToEntity()
-	if contact == nil {
-		return fmt.Errorf("error on contact mapping")
-	}
-
+func (cs *ContactService) CreateContact(tx context.Context, id *uuid.UUID, contact *model.Contact) error {
 	err := cs.contactRepository.CreateContact(tx, id, contact)
 	if err != nil {
 		return err
@@ -41,12 +34,7 @@ func (cs *ContactService) CreateContact(tx context.Context, id *uuid.UUID, creat
 	return nil
 }
 
-func (cs *ContactService) UpdateContact(tx context.Context, id *uuid.UUID, updateContact *model.UpdateContact) error {
-	contact := updateContact.ToEntity()
-	if contact == nil {
-		return fmt.Errorf("error on contact mapping")
-	}
-
+func (cs *ContactService) UpdateContact(tx context.Context, id *uuid.UUID, contact *model.Contact) error {
 	err := cs.contactRepository.UpdateContact(tx, id, contact)
 	if err != nil {
 		return err
