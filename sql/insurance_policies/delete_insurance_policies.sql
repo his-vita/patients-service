@@ -1,0 +1,1 @@
+DELETE FROM insurance_policies WHERE id = $1

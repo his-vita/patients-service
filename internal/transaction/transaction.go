@@ -28,20 +28,29 @@ type InnService interface {
 	UpdateInn(ctx context.Context, id *uuid.UUID, inn *model.Inn) error
 }
 
-type Transaction struct {
-	patientService PatientService
-	contactService ContactService
-	snilsService   SnilsService
-	innService     InnService
-	txManager      database.TransactionManager
+type InsuranceService interface {
+	CreateInsurance(ctx context.Context, insurance *model.Insurance) error
+	UpdateInsurance(ctx context.Context, id *uuid.UUID, insurance *model.Insurance) error
 }
 
-func NewTransaction(ps PatientService, cs ContactService, ss SnilsService, is InnService, tx database.TransactionManager) *Transaction {
+type Transaction struct {
+	patientService   PatientService
+	contactService   ContactService
+	snilsService     SnilsService
+	innService       InnService
+	insuranceService InsuranceService
+	txManager        database.TransactionManager
+}
+
+func NewTransaction(ps PatientService, cs ContactService,
+	ss SnilsService, is InnService, insuranceService InsuranceService,
+	tx database.TransactionManager) *Transaction {
 	return &Transaction{
-		patientService: ps,
-		contactService: cs,
-		snilsService:   ss,
-		innService:     is,
-		txManager:      tx,
+		patientService:   ps,
+		contactService:   cs,
+		snilsService:     ss,
+		innService:       is,
+		insuranceService: insuranceService,
+		txManager:        tx,
 	}
 }

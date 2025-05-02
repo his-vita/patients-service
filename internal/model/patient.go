@@ -16,4 +16,5 @@ type Patient struct {
 	Contact    Contact    `json:"contact"`
 	Snils      Snils      `json:"snils"`
 	Inn        Inn        `json:"inn"`
+	Insurance  *Insurance `json:"insurance"`
 }

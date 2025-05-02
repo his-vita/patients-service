@@ -55,9 +55,12 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*model.Patient, error) {
 		return nil, fmt.Errorf("SQL query get_patient_by_id.sql not found")
 	}
 
-	var patient model.Patient
 	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
+
+	patient := model.Patient{
+		Insurance: new(model.Insurance),
+	}
 
 	err = pr.pgContext.Pool.QueryRow(ctx, query, id).Scan(
 		&patient.ID,
@@ -70,12 +73,22 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*model.Patient, error) {
 		&patient.Contact.PhoneNumber,
 		&patient.Contact.WorkPhoneNumber,
 		&patient.Contact.Email,
-		&patient.Snils.Number)
+		&patient.Snils.Number,
+		&patient.Insurance.ID,
+		&patient.Insurance.Number,
+		&patient.Insurance.IssueDate,
+		&patient.Insurance.ExpiryDate,
+		&patient.Insurance.Type,
+		&patient.Insurance.InsuranceCompanyID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("patient with id %s not found", id)
 		}
 		return nil, fmt.Errorf("error retrieving patient: %w", err)
+	}
+
+	if patient.Insurance.ID == nil {
+		patient.Insurance = nil
 	}
 
 	return &patient, nil
@@ -99,7 +112,9 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) ([]model.Patient
 	var patients []model.Patient
 
 	for rows.Next() {
-		var patient model.Patient
+		patient := model.Patient{
+			Insurance: new(model.Insurance),
+		}
 
 		err := rows.Scan(
 			&patient.ID,
@@ -111,7 +126,10 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) ([]model.Patient
 			&patient.Contact.PhoneNumber,
 			&patient.Contact.WorkPhoneNumber,
 			&patient.Contact.Email,
-			&patient.Snils.Number)
+			&patient.Snils.Number,
+			&patient.Insurance.Number,
+			&patient.Insurance.Type,
+			&patient.Insurance.InsuranceCompanyID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}

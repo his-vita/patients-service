@@ -11,6 +11,8 @@ func (t *Transaction) CreatePatient(patient *model.Patient) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	fmt.Println(patient)
+
 	tx, err := t.txManager.BeginTransaction(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -32,6 +34,12 @@ func (t *Transaction) CreatePatient(patient *model.Patient) error {
 
 	if err := t.innService.CreateInn(tx, id, &patient.Inn); err != nil {
 		return fmt.Errorf("failed to save inn: %w", err)
+	}
+
+	patient.Insurance.PatientID = id
+
+	if err := t.insuranceService.CreateInsurance(tx, patient.Insurance); err != nil {
+		return fmt.Errorf("failed to save insurance: %w", err)
 	}
 
 	if err := t.txManager.CommitTransaction(tx); err != nil {

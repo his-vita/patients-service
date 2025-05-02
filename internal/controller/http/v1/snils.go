@@ -10,7 +10,7 @@ import (
 )
 
 type SnilsService interface {
-	UpdateSnils(tx context.Context, id *uuid.UUID, updateSnils *model.Snils) error
+	UpdateSnils(tx context.Context, id *uuid.UUID, inn *model.Snils) error
 }
 
 type SnilsController struct {

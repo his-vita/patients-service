@@ -10,7 +10,7 @@ import (
 )
 
 type InnService interface {
-	UpdateInn(tx context.Context, id *uuid.UUID, updateInn *model.Inn) error
+	UpdateInn(tx context.Context, id *uuid.UUID, inn *model.Inn) error
 }
 
 type InnController struct {
