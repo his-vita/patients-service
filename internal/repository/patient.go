@@ -35,8 +35,6 @@ func (pr *PatientRepository) CreatePatient(tx context.Context, patient *model.Pa
 	ctx, cancel := pr.pgContext.DefaultTimeoutCtx()
 	defer cancel()
 
-	fmt.Println(tx)
-
 	err = pr.pgContext.TxOrDb(tx).QueryRow(ctx, query,
 		patient.FirstName,
 		patient.LastName,

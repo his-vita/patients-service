@@ -50,8 +50,6 @@ func New(sqlPath string) (*SqlStore, error) {
 		return nil, fmt.Errorf("no .sql files loaded from: %s", sqlPath)
 	}
 
-	fmt.Println(queries)
-
 	return &SqlStore{
 		queries: queries,
 	}, nil

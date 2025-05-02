@@ -31,12 +31,15 @@ func Run(cfg *config.Config) {
 	patientRepository := repository.NewPatientRepository(pgContext, sqlStore)
 	contactRepository := repository.NewContactRepository(pgContext, sqlStore)
 	snilsRepository := repository.NewSnilsRepository(pgContext, sqlStore)
+	innRepository := repository.NewInnRepository(pgContext, sqlStore)
 
 	patientService := service.NewPatientService(log, patientRepository)
 	contactService := service.NewContactService(log, contactRepository)
 	snilsService := service.NewSnilsService(log, snilsRepository)
+	innService := service.NewInnService(log, innRepository)
 
-	transaction := transaction.NewTransaction(patientService, contactService, snilsService, txManager)
+	transaction := transaction.NewTransaction(patientService,
+		contactService, snilsService, innService, txManager)
 
 	patientController := v1.NewPatientController(patientService, transaction)
 	contactController := v1.NewContactController(contactService)

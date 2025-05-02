@@ -23,18 +23,25 @@ type SnilsService interface {
 	UpdateSnils(ctx context.Context, id *uuid.UUID, snils *model.Snils) error
 }
 
+type InnService interface {
+	CreateInn(ctx context.Context, id *uuid.UUID, inn *model.Inn) error
+	UpdateInn(ctx context.Context, id *uuid.UUID, inn *model.Inn) error
+}
+
 type Transaction struct {
 	patientService PatientService
 	contactService ContactService
 	snilsService   SnilsService
+	innService     InnService
 	txManager      database.TransactionManager
 }
 
-func NewTransaction(ps PatientService, cs ContactService, ss SnilsService, tx database.TransactionManager) *Transaction {
+func NewTransaction(ps PatientService, cs ContactService, ss SnilsService, is InnService, tx database.TransactionManager) *Transaction {
 	return &Transaction{
 		patientService: ps,
 		contactService: cs,
 		snilsService:   ss,
+		innService:     is,
 		txManager:      tx,
 	}
 }

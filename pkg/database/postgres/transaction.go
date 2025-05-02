@@ -53,7 +53,6 @@ func (tm *TransactionManager) RollbackTransaction(ctx context.Context) error {
 
 	err := tx.Rollback(ctx)
 	if err != nil {
-		fmt.Printf("error during rollback: %v\n", err)
 		return fmt.Errorf("failed to rollback transaction: %w", err)
 	}
 
