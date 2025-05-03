@@ -10,6 +10,7 @@ SELECT
     c.work_phone_number,
     c.email,
     s.number,
+    i.number,
     ip.id,
     ip.number,
     ip.issue_date,
@@ -20,6 +21,7 @@ FROM
     patients p
     INNER JOIN contacts c ON c.patient_id = p.id
     INNER JOIN snils s ON s.patient_id = p.id
+    INNER JOIN inn i ON i.patient_id = p.id
     LEFT JOIN insurance_policies ip ON ip.patient_id = p.id
     AND (
         ip.expiry_date IS NULL

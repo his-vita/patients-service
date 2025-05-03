@@ -74,6 +74,7 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*model.Patient, error) {
 		&patient.Contact.WorkPhoneNumber,
 		&patient.Contact.Email,
 		&patient.Snils.Number,
+		&patient.Inn.Number,
 		&patient.Insurance.ID,
 		&patient.Insurance.Number,
 		&patient.Insurance.IssueDate,
@@ -127,6 +128,7 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) ([]model.Patient
 			&patient.Contact.WorkPhoneNumber,
 			&patient.Contact.Email,
 			&patient.Snils.Number,
+			&patient.Inn.Number,
 			&patient.Insurance.Number,
 			&patient.Insurance.Type,
 			&patient.Insurance.InsuranceCompanyID)

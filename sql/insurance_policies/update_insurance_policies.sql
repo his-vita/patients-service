@@ -1,4 +1,4 @@
-UPDATE inn
+UPDATE insurance_policies
 SET
     number = $2,
     issue_date = $3,
