@@ -10,7 +10,7 @@ import (
 
 type PatientService interface {
 	CreatePatient(ctx context.Context, patient *model.Patient) (*uuid.UUID, error)
-	UpdatePatient(ctx context.Context, patient *model.Patient) error
+	UpdatePatient(ctx context.Context, id *uuid.UUID, patient *model.Patient) error
 }
 
 type ContactService interface {

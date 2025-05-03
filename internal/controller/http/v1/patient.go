@@ -18,7 +18,7 @@ type PatientService interface {
 
 type Transaction interface {
 	CreatePatient(patient *model.Patient) error
-	UpdatePatient(patient *model.Patient) error
+	UpdatePatient(id *uuid.UUID, patient *model.Patient) error
 }
 
 type PatientController struct {
@@ -50,6 +50,8 @@ func (pc *PatientController) CreatePatient(c *gin.Context) {
 }
 
 func (pc *PatientController) UpdatePatient(c *gin.Context) {
+	uuid, _ := uuid.Parse(c.Param("id"))
+
 	var patient model.Patient
 
 	if err := c.ShouldBindJSON(&patient); err != nil {
@@ -57,7 +59,7 @@ func (pc *PatientController) UpdatePatient(c *gin.Context) {
 		return
 	}
 
-	if err := pc.transaction.UpdatePatient(&patient); err != nil {
+	if err := pc.transaction.UpdatePatient(&uuid, &patient); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

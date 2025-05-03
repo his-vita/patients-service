@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/his-vita/patients-service/internal/model"
 )
 
@@ -51,7 +52,7 @@ func (t *Transaction) CreatePatient(patient *model.Patient) error {
 	return nil
 }
 
-func (t *Transaction) UpdatePatient(patient *model.Patient) error {
+func (t *Transaction) UpdatePatient(id *uuid.UUID, patient *model.Patient) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -61,20 +62,20 @@ func (t *Transaction) UpdatePatient(patient *model.Patient) error {
 	}
 	defer t.txManager.RollbackTransaction(tx)
 
-	err = t.patientService.UpdatePatient(tx, patient)
+	err = t.patientService.UpdatePatient(tx, id, patient)
 	if err != nil {
 		return fmt.Errorf("failed to update patient: %w", err)
 	}
 
-	if err := t.contactService.UpdateContact(tx, &patient.ID, &patient.Contact); err != nil {
+	if err := t.contactService.UpdateContact(tx, id, &patient.Contact); err != nil {
 		return fmt.Errorf("failed to update contact: %w", err)
 	}
 
-	if err := t.snilsService.UpdateSnils(tx, &patient.ID, &patient.Snils); err != nil {
+	if err := t.snilsService.UpdateSnils(tx, id, &patient.Snils); err != nil {
 		return fmt.Errorf("failed to update snils: %w", err)
 	}
 
-	if err := t.innService.UpdateInn(tx, &patient.ID, &patient.Inn); err != nil {
+	if err := t.innService.UpdateInn(tx, id, &patient.Inn); err != nil {
 		return fmt.Errorf("failed to update snils: %w", err)
 	}
 

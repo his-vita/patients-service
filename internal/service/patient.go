@@ -11,7 +11,7 @@ import (
 type PatientRepository interface {
 	GetPatient(id *uuid.UUID) (*model.Patient, error)
 	GetPatients(limit int, offset int) ([]model.Patient, error)
-	UpdatePatient(tx context.Context, patient *model.Patient) error
+	UpdatePatient(tx context.Context, id *uuid.UUID, patient *model.Patient) error
 	CreatePatient(tx context.Context, patient *model.Patient) (*uuid.UUID, error)
 	MarkPatientAsDeleted(id *uuid.UUID) error
 	UnMarkPatientAsDeleted(id *uuid.UUID) error
@@ -42,8 +42,8 @@ func (ps *PatientService) CreatePatient(tx context.Context, patient *model.Patie
 	return id, nil
 }
 
-func (ps *PatientService) UpdatePatient(tx context.Context, patient *model.Patient) error {
-	err := ps.patientRepository.UpdatePatient(tx, patient)
+func (ps *PatientService) UpdatePatient(tx context.Context, id *uuid.UUID, patient *model.Patient) error {
+	err := ps.patientRepository.UpdatePatient(tx, id, patient)
 	if err != nil {
 		return err
 	}

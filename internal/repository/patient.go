@@ -142,7 +142,7 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) ([]model.Patient
 	return patients, nil
 }
 
-func (pr *PatientRepository) UpdatePatient(tx context.Context, patient *model.Patient) error {
+func (pr *PatientRepository) UpdatePatient(tx context.Context, id *uuid.UUID, patient *model.Patient) error {
 	query, err := pr.sqlStore.GetQuery("update_patient.sql")
 	if err != nil {
 		return fmt.Errorf("SQL query update_patient.sql not found")
@@ -152,7 +152,7 @@ func (pr *PatientRepository) UpdatePatient(tx context.Context, patient *model.Pa
 	defer cancel()
 
 	res, err := pr.pgContext.TxOrDb(tx).Exec(ctx, query,
-		patient.ID,
+		id,
 		patient.FirstName,
 		patient.LastName,
 		patient.MiddleName,

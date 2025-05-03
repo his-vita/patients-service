@@ -47,6 +47,7 @@ func Run(cfg *config.Config) {
 	patientController := v1.NewPatientController(patientService, transaction)
 	contactController := v1.NewContactController(contactService)
 	snilsController := v1.NewSnilsController(snilsService)
+	innController := v1.NewInnController(innService)
 	insuranceController := v1.NewInsuranceController(insuranceService)
 
 	httpServer := httpserver.New(cfg.Env, &cfg.Server)
@@ -56,6 +57,7 @@ func Run(cfg *config.Config) {
 	routes.PatientRoutes(rg, patientController)
 	routes.ContactRoutes(rg, contactController)
 	routes.SnilsRoutes(rg, snilsController)
+	routes.InnRoutes(rg, innController)
 	routes.InsuranceRoutes(rg, insuranceController)
 
 	if err := httpServer.Run(&cfg.Server); err != nil {

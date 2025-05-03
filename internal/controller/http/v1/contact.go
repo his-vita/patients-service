@@ -24,12 +24,7 @@ func NewContactController(s ContactService) *ContactController {
 }
 
 func (cc *ContactController) UpdateContact(c *gin.Context) {
-	id, exists := c.Get("id")
-	if !exists {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID not found in context"})
-		return
-	}
-	uuid := id.(uuid.UUID)
+	uuid, _ := uuid.Parse(c.Param("id"))
 
 	var contact model.Contact
 

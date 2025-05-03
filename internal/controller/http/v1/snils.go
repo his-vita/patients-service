@@ -24,12 +24,7 @@ func NewSnilsController(s SnilsService) *SnilsController {
 }
 
 func (cc *SnilsController) UpdateSnils(c *gin.Context) {
-	id, exists := c.Get("id")
-	if !exists {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID not found in context"})
-		return
-	}
-	uuid := id.(uuid.UUID)
+	uuid, _ := uuid.Parse(c.Param("id"))
 
 	var snils model.Snils
 
