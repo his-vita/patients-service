@@ -59,8 +59,9 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*model.Patient, error) {
 	defer cancel()
 
 	patient := model.Patient{
-		Insurance: new(model.Insurance),
-		Document:  new(model.Document),
+		InsuranceOMS: new(model.Insurance),
+		InsuranceDMS: new(model.Insurance),
+		Document:     new(model.Document),
 	}
 
 	err = pr.pgContext.Pool.QueryRow(ctx, query, id).Scan(
@@ -76,12 +77,20 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*model.Patient, error) {
 		&patient.Contact.Email,
 		&patient.Snils.Number,
 		&patient.Inn.Number,
-		&patient.Insurance.ID,
-		&patient.Insurance.Number,
-		&patient.Insurance.IssueDate,
-		&patient.Insurance.ExpiryDate,
-		&patient.Insurance.Type,
-		&patient.Insurance.InsuranceCompanyID,
+		&patient.InsuranceOMS.ID,
+		&patient.InsuranceOMS.Number,
+		&patient.InsuranceOMS.IssueDate,
+		&patient.InsuranceOMS.ExpiryDate,
+		&patient.InsuranceOMS.Type,
+		&patient.InsuranceOMS.Main,
+		&patient.InsuranceOMS.InsuranceCompanyID,
+		&patient.InsuranceDMS.ID,
+		&patient.InsuranceDMS.Number,
+		&patient.InsuranceDMS.IssueDate,
+		&patient.InsuranceDMS.ExpiryDate,
+		&patient.InsuranceDMS.Type,
+		&patient.InsuranceDMS.Main,
+		&patient.InsuranceDMS.InsuranceCompanyID,
 		&patient.Document.ID,
 		&patient.Document.Series,
 		&patient.Document.Number,
@@ -98,13 +107,7 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*model.Patient, error) {
 		return nil, fmt.Errorf("error retrieving patient: %w", err)
 	}
 
-	if patient.Insurance.ID == nil {
-		patient.Insurance = nil
-	}
-
-	if patient.Document.ID == nil {
-		patient.Document = nil
-	}
+	patient.Sanitize()
 
 	return &patient, nil
 }
@@ -128,7 +131,9 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) ([]model.Patient
 
 	for rows.Next() {
 		patient := model.Patient{
-			Insurance: new(model.Insurance),
+			InsuranceOMS: new(model.Insurance),
+			InsuranceDMS: new(model.Insurance),
+			Document:     new(model.Document),
 		}
 
 		err := rows.Scan(
@@ -143,12 +148,21 @@ func (pr *PatientRepository) GetPatients(limit int, offset int) ([]model.Patient
 			&patient.Contact.Email,
 			&patient.Snils.Number,
 			&patient.Inn.Number,
-			&patient.Insurance.Number,
-			&patient.Insurance.Type,
-			&patient.Insurance.InsuranceCompanyID)
+			&patient.InsuranceOMS.ID,
+			&patient.InsuranceOMS.Number,
+			&patient.InsuranceOMS.InsuranceCompanyID,
+			&patient.InsuranceDMS.ID,
+			&patient.InsuranceDMS.Number,
+			&patient.InsuranceDMS.InsuranceCompanyID,
+			&patient.Document.ID,
+			&patient.Document.Series,
+			&patient.Document.Number,
+			&patient.Document.DocumentTypeID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
+
+		patient.Sanitize()
 
 		patients = append(patients, patient)
 	}

@@ -12,8 +12,6 @@ func (t *Transaction) CreatePatient(patient *model.Patient) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	fmt.Println(patient)
-
 	tx, err := t.txManager.BeginTransaction(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -37,11 +35,19 @@ func (t *Transaction) CreatePatient(patient *model.Patient) error {
 		return fmt.Errorf("failed to save inn: %w", err)
 	}
 
-	if patient.Insurance != nil {
-		patient.Insurance.PatientID = id
+	if patient.InsuranceOMS != nil {
+		patient.InsuranceOMS.PatientID = id
 
-		if err := t.insuranceService.CreateInsurance(tx, patient.Insurance); err != nil {
-			return fmt.Errorf("failed to save insurance: %w", err)
+		if err := t.insuranceService.CreateInsurance(tx, patient.InsuranceOMS); err != nil {
+			return fmt.Errorf("failed to save insurance OMS: %w", err)
+		}
+	}
+
+	if patient.InsuranceDMS != nil {
+		patient.InsuranceDMS.PatientID = id
+
+		if err := t.insuranceService.CreateInsurance(tx, patient.InsuranceDMS); err != nil {
+			return fmt.Errorf("failed to save insurance DMS: %w", err)
 		}
 	}
 
@@ -87,8 +93,14 @@ func (t *Transaction) UpdatePatient(id *uuid.UUID, patient *model.Patient) error
 		return fmt.Errorf("failed to update inn: %w", err)
 	}
 
-	if patient.Insurance != nil {
-		if err := t.insuranceService.UpdateInsurance(tx, patient.Insurance.ID, patient.Insurance); err != nil {
+	if patient.InsuranceOMS != nil {
+		if err := t.insuranceService.UpdateInsurance(tx, patient.InsuranceOMS.ID, patient.InsuranceOMS); err != nil {
+			return fmt.Errorf("failed to update insurance: %w", err)
+		}
+	}
+
+	if patient.InsuranceDMS != nil {
+		if err := t.insuranceService.UpdateInsurance(tx, patient.InsuranceDMS.ID, patient.InsuranceDMS); err != nil {
 			return fmt.Errorf("failed to update insurance: %w", err)
 		}
 	}

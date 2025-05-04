@@ -6,6 +6,7 @@ CREATE TABLE insurance_policies (
     issue_date DATE NOT NULL,
     expiry_date DATE DEFAULT NULL,
     type INT,
+    main BOOLEAN NOT NULL,
     patient_id UUID NOT NULL,
     insurance_company_id INT,
     FOREIGN KEY (patient_id) REFERENCES patients(id)

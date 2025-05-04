@@ -37,6 +37,7 @@ func (r *InsuranceRepository) CreateInsurance(tx context.Context, insurance *mod
 		insurance.IssueDate,
 		insurance.ExpiryDate,
 		insurance.Type,
+		insurance.Main,
 		insurance.InsuranceCompanyID)
 	if err != nil {
 		return fmt.Errorf("error creating insurance policy: %w", err)
