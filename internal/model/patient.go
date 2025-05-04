@@ -17,4 +17,5 @@ type Patient struct {
 	Snils      Snils      `json:"snils"`
 	Inn        Inn        `json:"inn"`
 	Insurance  *Insurance `json:"insurance"`
+	Document   *Document  `json:"document"`
 }

@@ -60,6 +60,7 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*model.Patient, error) {
 
 	patient := model.Patient{
 		Insurance: new(model.Insurance),
+		Document:  new(model.Document),
 	}
 
 	err = pr.pgContext.Pool.QueryRow(ctx, query, id).Scan(
@@ -80,7 +81,16 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*model.Patient, error) {
 		&patient.Insurance.IssueDate,
 		&patient.Insurance.ExpiryDate,
 		&patient.Insurance.Type,
-		&patient.Insurance.InsuranceCompanyID)
+		&patient.Insurance.InsuranceCompanyID,
+		&patient.Document.ID,
+		&patient.Document.Series,
+		&patient.Document.Number,
+		&patient.Document.DepartmentCode,
+		&patient.Document.IssueDate,
+		&patient.Document.ExpiryDate,
+		&patient.Document.Main,
+		&patient.Document.DocumentTypeID,
+		&patient.Document.DocumentCompanyID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("patient with id %s not found", id)
@@ -90,6 +100,10 @@ func (pr *PatientRepository) GetPatient(id *uuid.UUID) (*model.Patient, error) {
 
 	if patient.Insurance.ID == nil {
 		patient.Insurance = nil
+	}
+
+	if patient.Document.ID == nil {
+		patient.Document = nil
 	}
 
 	return &patient, nil

@@ -45,6 +45,14 @@ func (t *Transaction) CreatePatient(patient *model.Patient) error {
 		}
 	}
 
+	if patient.Document != nil {
+		patient.Document.PatientID = id
+
+		if err := t.documentService.CreateDocument(tx, patient.Document); err != nil {
+			return fmt.Errorf("failed to save document: %w", err)
+		}
+	}
+
 	if err := t.txManager.CommitTransaction(tx); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
@@ -76,12 +84,18 @@ func (t *Transaction) UpdatePatient(id *uuid.UUID, patient *model.Patient) error
 	}
 
 	if err := t.innService.UpdateInn(tx, id, &patient.Inn); err != nil {
-		return fmt.Errorf("failed to update snils: %w", err)
+		return fmt.Errorf("failed to update inn: %w", err)
 	}
 
 	if patient.Insurance != nil {
 		if err := t.insuranceService.UpdateInsurance(tx, patient.Insurance.ID, patient.Insurance); err != nil {
-			return fmt.Errorf("failed to update snils: %w", err)
+			return fmt.Errorf("failed to update insurance: %w", err)
+		}
+	}
+
+	if patient.Document != nil {
+		if err := t.documentService.UpdateDocument(tx, patient.Document.ID, patient.Document); err != nil {
+			return fmt.Errorf("failed to update document: %w", err)
 		}
 	}
 

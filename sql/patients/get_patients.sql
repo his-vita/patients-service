@@ -12,7 +12,10 @@ SELECT
     i.number,
     ip.number,
     ip.type,
-    ip.insurance_company_id
+    ip.insurance_company_id,
+    pd.series,
+    pd.number,
+    pd.document_type_id
 FROM patients p
     INNER JOIN contacts c ON c.patient_id = p.id
     INNER JOIN snils s ON s.patient_id = p.id
@@ -22,6 +25,8 @@ FROM patients p
         ip.expiry_date IS NULL
         OR ip.expiry_date >= CURRENT_DATE
     )
+    LEFT JOIN personal_documents pd ON pd.patient_id = p.id
+    AND pd.main = true
 WHERE
     p.deleted_ts IS NULL
 ORDER BY p.last_name

@@ -16,7 +16,16 @@ SELECT
     ip.issue_date,
     ip.expiry_date,
     ip.type,
-    ip.insurance_company_id
+    ip.insurance_company_id,
+    pd.id,
+    pd.series,
+    pd.number,
+    pd.department_code,
+    pd.issue_date,
+    pd.expiry_date,
+    pd.main,
+    pd.document_type_id,
+    pd.document_company_id
 FROM
     patients p
     INNER JOIN contacts c ON c.patient_id = p.id
@@ -27,6 +36,8 @@ FROM
         ip.expiry_date IS NULL
         OR ip.expiry_date >= CURRENT_DATE
     )
+    LEFT JOIN personal_documents pd ON pd.patient_id = p.id
+    AND pd.main = true
 WHERE
     p.id = $1
     AND p.deleted_ts IS NULL

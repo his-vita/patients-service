@@ -33,24 +33,33 @@ type InsuranceService interface {
 	UpdateInsurance(ctx context.Context, id *uuid.UUID, insurance *model.Insurance) error
 }
 
+type DocumentService interface {
+	CreateDocument(ctx context.Context, document *model.Document) error
+	UpdateDocument(ctx context.Context, id *uuid.UUID, document *model.Document) error
+}
+
 type Transaction struct {
 	patientService   PatientService
 	contactService   ContactService
 	snilsService     SnilsService
 	innService       InnService
 	insuranceService InsuranceService
+	documentService  DocumentService
 	txManager        database.TransactionManager
 }
 
-func NewTransaction(ps PatientService, cs ContactService,
-	ss SnilsService, is InnService, insuranceService InsuranceService,
+func NewTransaction(patientService PatientService,
+	ContactService ContactService, SnilsService SnilsService,
+	InnService InnService, insuranceService InsuranceService,
+	documentService DocumentService,
 	tx database.TransactionManager) *Transaction {
 	return &Transaction{
-		patientService:   ps,
-		contactService:   cs,
-		snilsService:     ss,
-		innService:       is,
+		patientService:   patientService,
+		contactService:   ContactService,
+		snilsService:     SnilsService,
+		innService:       InnService,
 		insuranceService: insuranceService,
+		documentService:  documentService,
 		txManager:        tx,
 	}
 }
