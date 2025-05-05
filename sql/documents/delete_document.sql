@@ -1,0 +1,1 @@
+DELETE FROM personal_documents WHERE id = $1
